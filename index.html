@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="MathMagic - Uma ferramenta visual para criação e resolução de expressões matemáticas."
+    >
+
+    <title>MathMagic</title>
+
+    <!-- CSS principal -->
+    <link
+        rel="stylesheet"
+        href="./assets/css/main.css"
+    >
+</head>
+
+<body>
+
+    <!-- Aplicação -->
+    <div id="app">
+
+        <!-- Cabeçalho -->
+        <header class="app-header">
+
+            <div class="app-brand">
+                <span class="app-brand__icon">✦</span>
+
+                <div class="app-brand__content">
+                    <h1 class="app-brand__title">
+                        MathMagic
+                    </h1>
+
+                    <span class="app-brand__subtitle">
+                        Matemática passo a passo
+                    </span>
+                </div>
+            </div>
+
+            <div class="app-header__actions">
+
+                <button
+                    type="button"
+                    class="header-button"
+                    id="btnClear"
+                    title="Limpar expressão"
+                >
+                    Limpar
+                </button>
+
+                <button
+                    type="button"
+                    class="header-button header-button--icon"
+                    id="btnSettings"
+                    title="Configurações"
+                >
+                    ⚙
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- Conteúdo principal -->
+        <main class="app-main">
+
+            <!-- Área da expressão -->
+            <section
+                class="expression-section"
+                aria-label="Editor de expressão"
+            >
+
+                <div class="section-header">
+
+                    <div>
+                        <span class="section-label">
+                            EXPRESSÃO
+                        </span>
+
+                        <h2 class="section-title">
+                            Construa sua expressão
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <!-- Área onde a árvore matemática será renderizada -->
+                <div
+                    id="expression"
+                    class="expression-container"
+                >
+
+                    <div class="expression-empty">
+
+                        <span class="expression-empty__icon">
+                            +
+                        </span>
+
+                        <span class="expression-empty__text">
+                            Adicione uma operação para começar
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- Área inferior -->
+            <section class="workspace-section">
+
+                <!-- Painel de operações -->
+                <aside
+                    class="toolbar"
+                    aria-label="Operações matemáticas"
+                >
+
+                    <div class="toolbar-header">
+
+                        <span class="section-label">
+                            OPERAÇÕES
+                        </span>
+
+                    </div>
+
+
+                    <!-- Operações básicas -->
+                    <div class="toolbar-group">
+
+                        <span class="toolbar-group__title">
+                            Operações
+                        </span>
+
+                        <div class="toolbar-group__buttons">
+
+                            <button
+                                type="button"
+                                class="operation-button"
+                                data-operation="add"
+                            >
+                                +
+                            </button>
+
+                            <button
+                                type="button"
+                                class="operation-button"
+                                data-operation="subtract"
+                            >
+                                −
+                            </button>
+
+                            <button
+                                type="button"
+                                class="operation-button"
+                                data-operation="multiply"
+                            >
+                                ×
+                            </button>
+
+                            <button
+                                type="button"
+                                class="operation-button"
+                                data-operation="divide"
+                            >
+                                ÷
+                            </button>
+
+                            <button
+                                type="button"
+                                class="operation-button"
+                                data-operation="power"
+                            >
+                                xⁿ
+                            </button>
+
+                            <button
+                                type="button"
+                                class="operation-button"
+                                data-operation="parenthesis"
+                            >
+                                ( )
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Números -->
+                    <div class="toolbar-group">
+
+                        <span class="toolbar-group__title">
+                            Números
+                        </span>
+
+                        <div class="number-pad">
+
+                            <button type="button" class="number-button" data-value="7">7</button>
+                            <button type="button" class="number-button" data-value="8">8</button>
+                            <button type="button" class="number-button" data-value="9">9</button>
+
+                            <button type="button" class="number-button" data-value="4">4</button>
+                            <button type="button" class="number-button" data-value="5">5</button>
+                            <button type="button" class="number-button" data-value="6">6</button>
+
+                            <button type="button" class="number-button" data-value="1">1</button>
+                            <button type="button" class="number-button" data-value="2">2</button>
+                            <button type="button" class="number-button" data-value="3">3</button>
+
+                            <button
+                                type="button"
+                                class="number-button number-button--zero"
+                                data-value="0"
+                            >
+                                0
+                            </button>
+
+                            <button
+                                type="button"
+                                class="number-button"
+                                data-value="."
+                            >
+                                .
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </aside>
+
+
+                <!-- Passo a passo -->
+                <section
+                    class="steps-panel"
+                    aria-label="Passo a passo da resolução"
+                >
+
+                    <div class="steps-panel__header">
+
+                        <div>
+
+                            <span class="section-label">
+                                RESOLUÇÃO
+                            </span>
+
+                            <h2 class="section-title">
+                                Passo a passo
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="steps"
+                        class="steps-panel__content"
+                    >
+
+                        <div class="steps-empty">
+
+                            <span class="steps-empty__icon">
+                                ∑
+                            </span>
+
+                            <span class="steps-empty__text">
+                                A resolução aparecerá aqui.
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
+
+
+        <!-- Rodapé -->
+        <footer class="app-footer">
+
+            <span>
+                MathMagic
+            </span>
+
+            <span>
+                Fase 1 · Editor matemático
+            </span>
+
+        </footer>
+
+    </div>
+
+
+    <!-- JavaScript -->
+    <script
+        type="module"
+        src="./src/app.js"
+    ></script>
+
+</body>
+
+</html>

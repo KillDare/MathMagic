@@ -1,0 +1,237 @@
+.expression-container {
+    min-height: 0;
+
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px;
+
+    overflow: auto;
+}
+
+
+.expression-empty {
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 12px;
+
+    color: var(--color-text-muted);
+
+    text-align: center;
+}
+
+
+.expression-empty__icon {
+    width: 52px;
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px dashed var(--color-border-light);
+
+    border-radius: 50%;
+
+    color: var(--color-primary);
+
+    font-family: var(--font-family-math);
+
+    font-size: 28px;
+}
+
+
+.expression-empty__text {
+    font-size: 12px;
+}
+
+/* =========================================================
+   NÓS MATEMÁTICOS
+   ========================================================= */
+
+.math-node {
+    position: relative;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-family: var(--font-family-math);
+
+    color: var(--color-text);
+}
+
+
+/* =========================================================
+   NÚMERO
+   ========================================================= */
+
+.math-number {
+    min-width: 32px;
+
+    padding: 4px 8px;
+
+    font-size: 28px;
+}
+
+
+/* =========================================================
+   VARIÁVEL
+   ========================================================= */
+
+.math-variable {
+    min-width: 32px;
+
+    padding: 4px 8px;
+
+    font-size: 28px;
+
+    font-style: italic;
+}
+
+
+/* =========================================================
+   OPERAÇÃO BINÁRIA
+   ========================================================= */
+
+.math-binary-operation {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 28px;
+}
+
+
+.math-child {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+}
+
+
+.math-operator {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-width: 24px;
+
+    color: var(--color-primary);
+
+    font-size: 26px;
+}
+
+
+/* =========================================================
+   POTÊNCIA
+   ========================================================= */
+
+.math-power {
+    display: inline-flex;
+
+    align-items: flex-start;
+
+    gap: 2px;
+}
+
+
+.math-power__base {
+    display: inline-flex;
+
+    align-items: center;
+
+    font-size: 28px;
+}
+
+
+.math-power__exponent {
+    display: inline-flex;
+
+    align-items: flex-start;
+
+    font-size: 17px;
+
+    transform: translateY(-6px);
+}
+
+
+/* =========================================================
+   PARÊNTESES
+   ========================================================= */
+
+.math-parenthesis {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 2px;
+
+    font-size: 28px;
+}
+
+
+.math-parenthesis__symbol {
+    color: var(--color-text-secondary);
+
+    font-size: 34px;
+}
+
+
+/* =========================================================
+   SLOT
+   ========================================================= */
+
+.math-slot {
+    min-width: 44px;
+    height: 44px;
+
+    border: 1px dashed var(--color-primary);
+
+    border-radius: var(--radius-small);
+
+    background: rgba(139, 92, 246, 0.08);
+
+    color: var(--color-primary);
+
+    font-family: var(--font-family-math);
+
+    font-size: 20px;
+
+    cursor: pointer;
+
+    transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+
+.math-slot:hover {
+    background: rgba(139, 92, 246, 0.16);
+
+    border-color: var(--color-primary-hover);
+
+    transform: scale(1.04);
+}
+/* =========================================================
+   SELEÇÃO
+   ========================================================= */
+
+.math-node[data-selected="true"] {
+    border-radius: var(--radius-small);
+
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+}

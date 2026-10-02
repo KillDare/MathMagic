@@ -1,0 +1,122 @@
+.toolbar {
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 20px;
+
+    overflow-y: auto;
+}
+
+
+.toolbar-header {
+    margin-bottom: 20px;
+}
+
+
+.toolbar-group {
+    margin-bottom: 22px;
+}
+
+
+.toolbar-group__title {
+    display: block;
+
+    margin-bottom: 10px;
+
+    color: var(--color-text-muted);
+
+    font-size: 11px;
+    font-weight: 600;
+
+    text-transform: uppercase;
+}
+
+
+.toolbar-group__buttons {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 8px;
+}
+
+
+.operation-button,
+.number-button {
+    border: 1px solid var(--color-border);
+
+    border-radius: var(--radius-medium);
+
+    background: var(--color-surface-light);
+
+    color: var(--color-text);
+
+    cursor: pointer;
+
+    transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast);
+}
+
+
+.operation-button {
+    height: 48px;
+
+    font-family: var(--font-family-math);
+
+    font-size: 21px;
+}
+
+
+.number-button {
+    height: 42px;
+
+    font-size: 15px;
+}
+
+
+.operation-button:hover,
+.number-button:hover {
+    background: var(--color-surface-hover);
+
+    border-color: var(--color-primary);
+
+    transform: translateY(-1px);
+}
+
+
+.operation-button:active,
+.number-button:active {
+    transform: translateY(0);
+}
+
+
+.operation-button:focus-visible,
+.number-button:focus-visible {
+    outline: 2px solid var(--color-primary);
+
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   TECLADO NUMÉRICO
+   ========================================================= */
+
+.number-pad {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 8px;
+}
+
+
+.number-button--zero {
+    grid-column: span 2;
+}

@@ -1,0 +1,332 @@
+* {
+    box-sizing: border-box;
+}
+
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+
+body {
+    background: var(--color-background);
+    color: var(--color-text);
+
+    font-family: var(--font-family);
+
+    overflow: hidden;
+}
+
+
+button {
+    font: inherit;
+}
+
+
+#app {
+    width: 100%;
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.app-header {
+    height: var(--header-height);
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 24px;
+
+    background: var(--color-surface);
+
+    border-bottom: 1px solid var(--color-border);
+}
+
+
+.app-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+.app-brand__icon {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: var(--radius-medium);
+
+    background: var(--color-primary);
+
+    color: white;
+
+    font-size: 20px;
+
+    box-shadow:
+        0 0 20px rgba(139, 92, 246, 0.25);
+}
+
+
+.app-brand__content {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.app-brand__title {
+    margin: 0;
+
+    font-size: 20px;
+    font-weight: 700;
+
+    letter-spacing: -0.3px;
+}
+
+
+.app-brand__subtitle {
+    margin-top: 2px;
+
+    color: var(--color-text-muted);
+
+    font-size: 11px;
+}
+
+
+.app-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+.header-button {
+    height: 36px;
+
+    padding: 0 14px;
+
+    border: 1px solid var(--color-border);
+
+    border-radius: var(--radius-small);
+
+    background: var(--color-surface-light);
+
+    color: var(--color-text-secondary);
+
+    cursor: pointer;
+
+    transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
+}
+
+
+.header-button:hover {
+    background: var(--color-surface-hover);
+
+    border-color: var(--color-border-light);
+
+    color: var(--color-text);
+}
+
+
+.header-button--icon {
+    width: 36px;
+    padding: 0;
+
+    font-size: 17px;
+}
+
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+.app-main {
+    min-height: 0;
+
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 20px;
+
+    gap: 20px;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   SECTION
+   ========================================================= */
+
+.expression-section,
+.toolbar,
+.steps-panel {
+    background: var(--color-surface);
+
+    border: 1px solid var(--color-border);
+
+    border-radius: var(--radius-large);
+}
+
+
+.expression-section {
+    min-height: 260px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+}
+
+
+.section-header {
+    padding: 20px 22px 0;
+}
+
+
+.section-label {
+    display: block;
+
+    color: var(--color-primary);
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 1.2px;
+}
+
+
+.section-title {
+    margin: 5px 0 0;
+
+    font-size: 15px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   WORKSPACE
+   ========================================================= */
+
+.workspace-section {
+    min-height: 0;
+
+    flex: 1;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(280px, 360px)
+        minmax(0, 1fr);
+
+    gap: 20px;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.app-footer {
+    height: var(--footer-height);
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 20px;
+
+    border-top: 1px solid var(--color-border);
+
+    background: var(--color-surface);
+
+    color: var(--color-text-muted);
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+    body {
+        overflow: auto;
+    }
+
+
+    #app {
+        height: auto;
+        min-height: 100vh;
+    }
+
+
+    .app-main {
+        overflow: visible;
+    }
+
+
+    .workspace-section {
+        grid-template-columns: 1fr;
+    }
+
+
+    .expression-section {
+        min-height: 220px;
+    }
+
+
+    .app-footer {
+        margin-top: auto;
+    }
+}
+
+
+@media (max-width: 500px) {
+
+    .app-header {
+        padding: 0 14px;
+    }
+
+
+    .app-brand__subtitle {
+        display: none;
+    }
+
+
+    .app-main {
+        padding: 12px;
+
+        gap: 12px;
+    }
+
+
+    .workspace-section {
+        gap: 12px;
+    }
+}

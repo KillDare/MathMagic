@@ -1,0 +1,77 @@
+:root {
+
+    /* =========================================================
+       CORES
+       ========================================================= */
+
+    --color-background: #0f1117;
+    --color-surface: #171a23;
+    --color-surface-light: #1e222d;
+    --color-surface-hover: #252a37;
+
+    --color-border: #2d3342;
+    --color-border-light: #3a4152;
+
+    --color-primary: #8b5cf6;
+    --color-primary-hover: #9d72f7;
+    --color-primary-dark: #6d3fd1;
+
+    --color-text: #f1f3f7;
+    --color-text-secondary: #a7adbb;
+    --color-text-muted: #6f7685;
+
+    --color-success: #4ade80;
+    --color-error: #f87171;
+
+
+    /* =========================================================
+       TIPOGRAFIA
+       ========================================================= */
+
+    --font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    --font-family-math:
+        "Cambria Math",
+        "STIX Two Math",
+        "Times New Roman",
+        serif;
+
+
+    /* =========================================================
+       TAMANHOS
+       ========================================================= */
+
+    --header-height: 72px;
+    --footer-height: 36px;
+
+    --radius-small: 6px;
+    --radius-medium: 10px;
+    --radius-large: 14px;
+
+
+    /* =========================================================
+       SOMBRAS
+       ========================================================= */
+
+    --shadow-small:
+        0 2px 8px rgba(0, 0, 0, 0.20);
+
+    --shadow-medium:
+        0 8px 24px rgba(0, 0, 0, 0.25);
+
+
+    /* =========================================================
+       TRANSIÇÕES
+       ========================================================= */
+
+    --transition-fast:
+        120ms ease;
+
+    --transition-normal:
+        200ms ease;
+}
