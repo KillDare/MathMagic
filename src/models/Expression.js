@@ -289,7 +289,7 @@ export class Expression {
         // ---------------------------------------------------------
 
         if (
-           node.type === NodeTypes.SLOT
+            node.type === NodeTypes.SLOT
         ) {
 
             this.clearSelection();

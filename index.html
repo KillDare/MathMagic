@@ -4,23 +4,15 @@
 <head>
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="description"
-        content="MathMagic - Uma ferramenta visual para criação e resolução de expressões matemáticas."
-    >
+    <meta name="description"
+        content="MathMagic - Uma ferramenta visual para criação e resolução de expressões matemáticas.">
 
     <title>MathMagic</title>
 
     <!-- CSS principal -->
-    <link
-        rel="stylesheet"
-        href="./assets/css/main.css"
-    >
+    <link rel="stylesheet" href="./assets/css/main.css">
 </head>
 
 <body>
@@ -47,21 +39,11 @@
 
             <div class="app-header__actions">
 
-                <button
-                    type="button"
-                    class="header-button"
-                    id="btnClear"
-                    title="Limpar expressão"
-                >
+                <button type="button" class="header-button" id="btnClear" title="Limpar expressão">
                     Limpar
                 </button>
 
-                <button
-                    type="button"
-                    class="header-button header-button--icon"
-                    id="btnSettings"
-                    title="Configurações"
-                >
+                <button type="button" class="header-button header-button--icon" id="btnSettings" title="Configurações">
                     ⚙
                 </button>
 
@@ -74,10 +56,7 @@
         <main class="app-main">
 
             <!-- Área da expressão -->
-            <section
-                class="expression-section"
-                aria-label="Editor de expressão"
-            >
+            <section class="expression-section" aria-label="Editor de expressão">
 
                 <div class="section-header">
 
@@ -95,10 +74,7 @@
 
 
                 <!-- Área onde a árvore matemática será renderizada -->
-                <div
-                    id="expression"
-                    class="expression-container"
-                >
+                <div id="expression" class="expression-container">
 
                     <div class="expression-empty">
 
@@ -121,10 +97,7 @@
             <section class="workspace-section">
 
                 <!-- Painel de operações -->
-                <aside
-                    class="toolbar"
-                    aria-label="Operações matemáticas"
-                >
+                <aside class="toolbar" aria-label="Operações matemáticas">
 
                     <div class="toolbar-header">
 
@@ -144,51 +117,27 @@
 
                         <div class="toolbar-group__buttons">
 
-                            <button
-                                type="button"
-                                class="operation-button"
-                                data-operation="add"
-                            >
+                            <button type="button" class="operation-button" data-operation="add">
                                 +
                             </button>
 
-                            <button
-                                type="button"
-                                class="operation-button"
-                                data-operation="subtract"
-                            >
+                            <button type="button" class="operation-button" data-operation="subtract">
                                 −
                             </button>
 
-                            <button
-                                type="button"
-                                class="operation-button"
-                                data-operation="multiply"
-                            >
+                            <button type="button" class="operation-button" data-operation="multiply">
                                 ×
                             </button>
 
-                            <button
-                                type="button"
-                                class="operation-button"
-                                data-operation="divide"
-                            >
+                            <button type="button" class="operation-button" data-operation="divide">
                                 ÷
                             </button>
 
-                            <button
-                                type="button"
-                                class="operation-button"
-                                data-operation="power"
-                            >
+                            <button type="button" class="operation-button" data-operation="power">
                                 xⁿ
                             </button>
 
-                            <button
-                                type="button"
-                                class="operation-button"
-                                data-operation="parenthesis"
-                            >
+                            <button type="button" class="operation-button" data-operation="parenthesis">
                                 ( )
                             </button>
 
@@ -218,19 +167,11 @@
                             <button type="button" class="number-button" data-value="2">2</button>
                             <button type="button" class="number-button" data-value="3">3</button>
 
-                            <button
-                                type="button"
-                                class="number-button number-button--zero"
-                                data-value="0"
-                            >
+                            <button type="button" class="number-button number-button--zero" data-value="0">
                                 0
                             </button>
 
-                            <button
-                                type="button"
-                                class="number-button"
-                                data-value="."
-                            >
+                            <button type="button" class="number-button" data-value=".">
                                 .
                             </button>
 
@@ -242,10 +183,7 @@
 
 
                 <!-- Passo a passo -->
-                <section
-                    class="steps-panel"
-                    aria-label="Passo a passo da resolução"
-                >
+                <section class="steps-panel" aria-label="Passo a passo da resolução">
 
                     <div class="steps-panel__header">
 
@@ -264,10 +202,7 @@
                     </div>
 
 
-                    <div
-                        id="steps"
-                        class="steps-panel__content"
-                    >
+                    <div id="steps" class="steps-panel__content">
 
                         <div class="steps-empty">
 
@@ -307,10 +242,7 @@
 
 
     <!-- JavaScript -->
-    <script
-        type="module"
-        src="./src/app.js"
-    ></script>
+    <script type="module" src="./src/app.js"></script>
 
 </body>
 

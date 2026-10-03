@@ -15,22 +15,44 @@ export class Renderer {
     // Renderização principal
     // =========================================================
 
-    render(expression) {
+    render(
+        expression,
+        options = {}
+    ) {
 
-        this.expression = expression;
+        this.expression =
+            expression;
 
-        this.container.innerHTML = "";
 
-        if (!expression || expression.isEmpty()) {
+        this.highlightedNodeId =
+            options.highlightedNodeId ?? null;
+
+
+        this.container.innerHTML =
+            "";
+
+
+        if (
+            !expression ||
+            expression.isEmpty()
+        ) {
+
             this.renderEmpty();
+
             return;
         }
 
-        const element = this.renderNode(expression.getRoot());
 
-        this.container.appendChild(element);
+        const element =
+            this.renderNode(
+                expression.getRoot()
+            );
+
+
+        this.container.appendChild(
+            element
+        );
     }
-
 
     // =========================================================
     // Renderiza um MathNode
@@ -365,14 +387,44 @@ export class Renderer {
     }
 
 
-    setNodeData(element, node) {
+    setNodeData(
+        element,
+        node
+    ) {
 
-        element.dataset.nodeId = node.id;
+        element.dataset.nodeId =
+            node.id;
 
-        element.dataset.nodeType = node.type;
 
-        if (this.expression?.selectedNodeId === node.id) {
-            element.dataset.selected = "true";
+        element.dataset.nodeType =
+            node.type;
+
+
+        // ---------------------------------------------------------
+        // Seleção normal do editor
+        // ---------------------------------------------------------
+
+        if (
+            this.expression?.selectedNodeId ===
+            node.id
+        ) {
+
+            element.dataset.selected =
+                "true";
+        }
+
+
+        // ---------------------------------------------------------
+        // Destaque utilizado pelo Step by Step
+        // ---------------------------------------------------------
+
+        if (
+            this.highlightedNodeId ===
+            node.id
+        ) {
+
+            element.dataset.highlighted =
+                "true";
         }
     }
 

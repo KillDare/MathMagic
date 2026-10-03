@@ -144,12 +144,13 @@ function expressionChanged(
 // Controllers
 // =========================================================
 
-new ExpressionController(
+const expressionController = new ExpressionController(
     expression,
     renderer,
     expressionContainer
 );
 
+expressionController.setOnChange(expressionChanged);
 
 const toolbarController =
     new ToolbarController(

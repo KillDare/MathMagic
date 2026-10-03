@@ -9,7 +9,7 @@ import {
 export class MathEngine {
 
     // =========================================================
-    // Validação
+    // Verifica se a expressão está completa
     // =========================================================
 
     isComplete(node) {
@@ -20,7 +20,7 @@ export class MathEngine {
 
 
         // -----------------------------------------------------
-        // SLOT significa que a expressão ainda está incompleta.
+        // SLOT = expressão incompleta
         // -----------------------------------------------------
 
         if (
@@ -32,7 +32,7 @@ export class MathEngine {
 
 
         // -----------------------------------------------------
-        // Folhas válidas.
+        // Valores simples
         // -----------------------------------------------------
 
         if (
@@ -45,7 +45,7 @@ export class MathEngine {
 
 
         // -----------------------------------------------------
-        // Verifica todos os filhos.
+        // Operações precisam possuir filhos
         // -----------------------------------------------------
 
         if (
@@ -71,6 +71,7 @@ export class MathEngine {
     evaluate(node) {
 
         if (!node) {
+
             throw new Error(
                 "Não é possível calcular um nó vazio."
             );
@@ -156,24 +157,16 @@ export class MathEngine {
     // =========================================================
 
     evaluateNumber(node) {
+        const value = Number(node.value);
 
-        const value =
-            Number(node.value);
-
-
-        if (
-            !Number.isFinite(value)
-        ) {
-
+        if (Number.isNaN(value)) {
             throw new Error(
-                `Valor numérico inválido: ${node.value}`
+                `Número inválido: ${node.value}`
             );
         }
 
-
         return value;
     }
-
 
     // =========================================================
     // Divisão
@@ -217,9 +210,9 @@ export class MathEngine {
         }
 
 
-        // -----------------------------------------------------
-        // Não tentamos resolver expressões incompletas.
-        // -----------------------------------------------------
+        // ---------------------------------------------------------
+        // Não resolve expressões incompletas.
+        // ---------------------------------------------------------
 
         if (
             !this.isComplete(root)
@@ -229,11 +222,9 @@ export class MathEngine {
         }
 
 
-        // -----------------------------------------------------
-        // Trabalhamos sempre sobre uma cópia.
-        //
-        // A expressão original nunca é modificada.
-        // -----------------------------------------------------
+        // ---------------------------------------------------------
+        // Trabalhamos sempre com uma cópia.
+        // ---------------------------------------------------------
 
         let current =
             this.cloneNode(root);
@@ -242,10 +233,9 @@ export class MathEngine {
         const steps = [];
 
 
-        // -----------------------------------------------------
-        // Primeiro passo:
-        // expressão original.
-        // -----------------------------------------------------
+        // ---------------------------------------------------------
+        // Primeiro passo
+        // ---------------------------------------------------------
 
         steps.push({
 
@@ -253,13 +243,16 @@ export class MathEngine {
                 this.cloneNode(current),
 
             description:
-                "Expressão inicial"
+                "Expressão inicial",
+
+            type:
+                "initial"
         });
 
 
-        // -----------------------------------------------------
-        // Redução progressiva.
-        // -----------------------------------------------------
+        // ---------------------------------------------------------
+        // Redução progressiva
+        // ---------------------------------------------------------
 
         while (true) {
 
@@ -272,6 +265,15 @@ export class MathEngine {
             if (!target) {
                 break;
             }
+
+            const before =
+                this.cloneNode(
+                    current
+                );
+
+
+            const highlightedNodeId =
+                target.node.id;
 
 
             const replacement =
@@ -300,23 +302,43 @@ export class MathEngine {
                     replacement;
             }
 
-
             steps.push({
 
+                before,
+
                 node:
-                    this.cloneNode(current),
+                    this.cloneNode(
+                        current
+                    ),
+
+                highlightedNodeId,
 
                 description:
-                    target.description
+                    target.description,
+
+                type:
+                    "operation"
             });
         }
 
 
-        // -----------------------------------------------------
-        // Se não houve redução e a expressão não é um número,
-        // significa que o motor ainda não sabe resolver esse
-        // tipo de expressão.
-        // -----------------------------------------------------
+        // ---------------------------------------------------------
+        // Último passo
+        // ---------------------------------------------------------
+
+        if (
+            steps.length > 1
+        ) {
+
+            steps[
+                steps.length - 1
+            ].type = "result";
+        }
+
+
+        // ---------------------------------------------------------
+        // Se o motor não conseguiu resolver a expressão
+        // ---------------------------------------------------------
 
         if (
             steps.length === 1 &&
@@ -331,7 +353,6 @@ export class MathEngine {
 
         return steps;
     }
-
 
     // =========================================================
     // Localiza a próxima operação
@@ -389,7 +410,7 @@ export class MathEngine {
                     childIndex,
 
                     description:
-                        "Removemos os parênteses"
+                        `Removemos os parênteses: ${this.nodeToText(node)}`
                 };
             }
 
@@ -399,7 +420,7 @@ export class MathEngine {
 
 
         // -----------------------------------------------------
-        // Operação binária
+        // Operações binárias
         // -----------------------------------------------------
 
         if (
@@ -413,10 +434,6 @@ export class MathEngine {
             const right =
                 node.getChild(1);
 
-
-            // -------------------------------------------------
-            // Procuramos operações internas.
-            // -------------------------------------------------
 
             const leftOperation =
                 this.findNextOperation(
@@ -432,12 +449,6 @@ export class MathEngine {
                     node,
                     1
                 );
-
-
-            // -------------------------------------------------
-            // Se existem operações dos dois lados,
-            // escolhemos a de maior precedência.
-            // -------------------------------------------------
 
             if (
                 leftOperation &&
@@ -485,15 +496,14 @@ export class MathEngine {
             }
 
 
-            // -------------------------------------------------
-            // Se ambos os lados são números, podemos executar
-            // a operação atual.
-            // -------------------------------------------------
-
             if (
                 this.canEvaluate(left) &&
                 this.canEvaluate(right)
             ) {
+
+                const result =
+                    this.evaluate(node);
+
 
                 return {
 
@@ -505,7 +515,8 @@ export class MathEngine {
 
                     description:
                         this.getOperationDescription(
-                            node
+                            node,
+                            result
                         )
                 };
             }
@@ -517,7 +528,7 @@ export class MathEngine {
 
 
     // =========================================================
-    // Executa uma operação individual
+    // Executa uma operação
     // =========================================================
 
     reduceNode(node) {
@@ -557,7 +568,7 @@ export class MathEngine {
 
 
         // -----------------------------------------------------
-        // Operações binárias
+        // Operações
         // -----------------------------------------------------
 
         if (
@@ -585,7 +596,7 @@ export class MathEngine {
 
 
     // =========================================================
-    // Verifica se uma operação pode ser calculada
+    // Verifica se um nó pode ser calculado
     // =========================================================
 
     canEvaluate(node) {
@@ -638,41 +649,153 @@ export class MathEngine {
 
 
     // =========================================================
-    // Descrição do passo
+    // Descrição detalhada da operação
     // =========================================================
 
-    getOperationDescription(node) {
+    getOperationDescription(
+        node,
+        result
+    ) {
+
+        const left =
+            this.nodeToText(
+                node.getChild(0)
+            );
+
+
+        const right =
+            this.nodeToText(
+                node.getChild(1)
+            );
+
+
+        const resultText =
+            this.formatNumber(
+                result
+            );
+
 
         switch (node.type) {
 
             case NodeTypes.ADD:
 
-                return "Efetuamos a soma";
+                return `Somamos ${left} + ${right} = ${resultText}`;
 
 
             case NodeTypes.SUBTRACT:
 
-                return "Efetuamos a subtração";
+                return `Subtraímos ${left} − ${right} = ${resultText}`;
 
 
             case NodeTypes.MULTIPLY:
 
-                return "Efetuamos a multiplicação";
+                return `Multiplicamos ${left} × ${right} = ${resultText}`;
 
 
             case NodeTypes.DIVIDE:
 
-                return "Efetuamos a divisão";
+                return `Dividimos ${left} ÷ ${right} = ${resultText}`;
 
 
             case NodeTypes.POWER:
 
-                return "Calculamos a potência";
+                return `Calculamos ${left}^${right} = ${resultText}`;
 
 
             default:
 
                 return "Efetuamos a operação";
+        }
+    }
+
+
+    // =========================================================
+    // Converte um nó para texto matemático
+    // =========================================================
+
+    nodeToText(node) {
+
+        if (!node) {
+            return "?";
+        }
+
+
+        switch (node.type) {
+
+            case NodeTypes.NUMBER:
+
+                return String(
+                    node.value
+                );
+
+
+            case NodeTypes.VARIABLE:
+
+                return String(
+                    node.value
+                );
+
+
+            case NodeTypes.PARENTHESIS:
+
+                return `(${this.nodeToText(
+                    node.getChild(0)
+                )})`;
+
+
+            case NodeTypes.ADD:
+
+                return `${this.nodeToText(
+                    node.getChild(0)
+                )} + ${this.nodeToText(
+                    node.getChild(1)
+                )}`;
+
+
+            case NodeTypes.SUBTRACT:
+
+                return `${this.nodeToText(
+                    node.getChild(0)
+                )} − ${this.nodeToText(
+                    node.getChild(1)
+                )}`;
+
+
+            case NodeTypes.MULTIPLY:
+
+                return `${this.nodeToText(
+                    node.getChild(0)
+                )} × ${this.nodeToText(
+                    node.getChild(1)
+                )}`;
+
+
+            case NodeTypes.DIVIDE:
+
+                return `${this.nodeToText(
+                    node.getChild(0)
+                )} ÷ ${this.nodeToText(
+                    node.getChild(1)
+                )}`;
+
+
+            case NodeTypes.POWER:
+
+                return `${this.nodeToText(
+                    node.getChild(0)
+                )}^${this.nodeToText(
+                    node.getChild(1)
+                )}`;
+
+
+            case NodeTypes.SLOT:
+
+                return "□";
+
+
+            default:
+
+                return "?";
         }
     }
 
@@ -722,19 +845,16 @@ export class MathEngine {
     // =========================================================
 
     formatNumber(value) {
-
-        if (
-            Number.isInteger(value)
-        ) {
-
+        if (!Number.isFinite(value)) {
             return String(value);
         }
 
+        if (Number.isInteger(value)) {
+            return String(value);
+        }
 
         return String(
-            Number(
-                value.toFixed(12)
-            )
+            Number(value.toFixed(10))
         );
     }
 }

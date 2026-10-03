@@ -91,7 +91,7 @@ export class ToolbarController {
 
         if (
             selected.type ===
-                NodeTypes.NUMBER &&
+            NodeTypes.NUMBER &&
             this.canAppendValue(
                 selected.value,
                 value

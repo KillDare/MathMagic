@@ -6,7 +6,8 @@ export class StepView {
 
     constructor(container) {
 
-        this.container = container;
+        this.container =
+            container;
     }
 
 
@@ -16,7 +17,8 @@ export class StepView {
 
     render(steps) {
 
-        this.container.innerHTML = "";
+        this.container.innerHTML =
+            "";
 
 
         if (
@@ -56,12 +58,27 @@ export class StepView {
                 "div"
             );
 
+
         element.className =
             "step";
 
 
         // -----------------------------------------------------
-        // Número do passo
+        // Tipo do passo
+        // -----------------------------------------------------
+
+        if (
+            step.type
+        ) {
+
+            element.classList.add(
+                `step--${step.type}`
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // Número
         // -----------------------------------------------------
 
         const number =
@@ -69,8 +86,10 @@ export class StepView {
                 "div"
             );
 
+
         number.className =
             "step__number";
+
 
         number.textContent =
             index + 1;
@@ -85,6 +104,7 @@ export class StepView {
                 "div"
             );
 
+
         content.className =
             "step__content";
 
@@ -98,63 +118,60 @@ export class StepView {
                 "div"
             );
 
+
         description.className =
             "step__description";
+
 
         description.textContent =
             step.description;
 
 
-        // -----------------------------------------------------
-        // Expressão
-        // -----------------------------------------------------
-
-        const expressionContainer =
-            document.createElement(
-                "div"
-            );
-
-        expressionContainer.className =
-            "step__expression";
-
-
-        const expression =
-            new Expression();
-
-
-        expression.setRoot(
-            step.node,
-            false
+        content.appendChild(
+            description
         );
 
 
-        const renderer =
-            new Renderer(
+        // -----------------------------------------------------
+        // Passo de operação
+        // -----------------------------------------------------
+
+        if (
+            step.type ===
+            "operation"
+        ) {
+
+            this.renderOperationStep(
+                content,
+                step
+            );
+
+        } else {
+
+            // -------------------------------------------------
+            // Passo inicial ou resultado
+            // -------------------------------------------------
+
+            const expressionContainer =
+                this.createExpressionContainer(
+                    step.node
+                );
+
+
+            content.appendChild(
                 expressionContainer
             );
-
-
-        renderer.render(
-            expression
-        );
+        }
 
 
         // -----------------------------------------------------
         // Montagem
         // -----------------------------------------------------
 
-        content.appendChild(
-            description
-        );
-
-        content.appendChild(
-            expressionContainer
-        );
-
-
         element.appendChild(
             number
         );
+
 
         element.appendChild(
             content
@@ -164,6 +181,128 @@ export class StepView {
         this.container.appendChild(
             element
         );
+    }
+
+
+    // =========================================================
+    // Passo de operação
+    // =========================================================
+
+    renderOperationStep(
+        content,
+        step
+    ) {
+
+        // -----------------------------------------------------
+        // Expressão antes da operação
+        // -----------------------------------------------------
+
+        const beforeContainer =
+            this.createExpressionContainer(
+                step.before,
+                step.highlightedNodeId
+            );
+
+
+        beforeContainer.classList.add(
+            "step__expression--before"
+        );
+
+
+        content.appendChild(
+            beforeContainer
+        );
+
+
+        // -----------------------------------------------------
+        // Indicador visual
+        // -----------------------------------------------------
+
+        const arrow =
+            document.createElement(
+                "div"
+            );
+
+
+        arrow.className =
+            "step__arrow";
+
+
+        arrow.innerHTML = `
+            <span>↓</span>
+        `;
+
+
+        content.appendChild(
+            arrow
+        );
+
+
+        // -----------------------------------------------------
+        // Expressão depois da operação
+        // -----------------------------------------------------
+
+        const afterContainer =
+            this.createExpressionContainer(
+                step.node
+            );
+
+
+        afterContainer.classList.add(
+            "step__expression--after"
+        );
+
+
+        content.appendChild(
+            afterContainer
+        );
+    }
+
+
+    // =========================================================
+    // Cria uma expressão renderizada
+    // =========================================================
+
+    createExpressionContainer(
+        node,
+        highlightedNodeId = null
+    ) {
+
+        const container =
+            document.createElement(
+                "div"
+            );
+
+
+        container.className =
+            "step__expression";
+
+
+        const expression =
+            new Expression();
+
+
+        expression.setRoot(
+            node,
+            false
+        );
+
+
+        const renderer =
+            new Renderer(
+                container
+            );
+
+
+        renderer.render(
+            expression,
+            {
+                highlightedNodeId
+            }
+        );
+
+
+        return container;
     }
 
 
@@ -178,8 +317,10 @@ export class StepView {
                 "div"
             );
 
+
         element.className =
             "steps-empty";
+
 
         element.innerHTML = `
             <span class="steps-empty__icon">
@@ -204,13 +345,15 @@ export class StepView {
 
     renderError(message) {
 
-        this.container.innerHTML = "";
+        this.container.innerHTML =
+            "";
 
 
         const element =
             document.createElement(
                 "div"
             );
+
 
         element.className =
             "steps-empty steps-empty--error";

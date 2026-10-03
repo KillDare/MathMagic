@@ -71,8 +71,7 @@
 
     padding: 18px 0;
 
-    border-bottom: 1px solid
-        var(--color-border);
+    border-bottom: 1px solid var(--color-border);
 }
 
 
@@ -135,4 +134,205 @@
     min-height: 50px;
 
     overflow-x: auto;
+}
+
+/* =========================================================
+   Estados dos passos
+   ========================================================= */
+
+.step--initial {
+
+    opacity: 0.85;
+}
+
+
+.step--operation {
+
+    position: relative;
+}
+
+
+.step--operation .step__description {
+
+    color: var(--color-text-secondary);
+
+    font-weight: 500;
+}
+
+
+.step--result {
+
+    margin-top: 8px;
+
+    padding-top: 22px;
+
+    border-top: 1px solid var(--color-border);
+}
+
+
+.step--result .step__number {
+
+    font-weight: 700;
+
+    background: var(--color-primary);
+
+    color: var(--color-background);
+}
+
+
+.step--result .step__description {
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    color: var(--color-primary);
+}
+
+
+/* =========================================================
+   Expressão do resultado
+   ========================================================= */
+
+.step--result .step__expression {
+
+    min-height: 58px;
+
+    padding: 8px 14px;
+
+    border-radius: 10px;
+
+    background:
+        var(--color-surface);
+}
+
+
+/* =========================================================
+   Erro
+   ========================================================= */
+
+.steps-empty--error {
+
+    color: var(--color-danger);
+}
+
+.steps-empty--error .steps-empty__icon {
+
+    color: var(--color-danger);
+}
+
+/* =========================================================
+   Destaque da operação atual
+   ========================================================= */
+
+.math-node[data-highlighted="true"] {
+
+    position: relative;
+
+    z-index: 2;
+
+    padding: 5px 8px;
+
+    margin: -5px -8px;
+
+    border-radius: 8px;
+
+    background:
+        var(--color-primary);
+
+    color:
+        var(--color-background);
+
+    box-shadow:
+        0 0 0 3px rgba(139, 92, 246, 0.18);
+
+    animation:
+        mathMagicHighlight 180ms ease-out;
+}
+
+
+/* =========================================================
+   Seta entre antes e depois
+   ========================================================= */
+
+.step__arrow {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    height: 30px;
+
+    color:
+        var(--color-primary);
+
+    font-size: 22px;
+
+    font-weight: 700;
+}
+
+
+.step__arrow span {
+
+    display: block;
+
+    line-height: 1;
+}
+
+
+/* =========================================================
+   Expressão antes da operação
+   ========================================================= */
+
+.step__expression--before {
+
+    padding: 8px 14px;
+
+    border-radius: 10px;
+
+    background:
+        var(--color-surface);
+}
+
+
+/* =========================================================
+   Expressão depois da operação
+   ========================================================= */
+
+.step__expression--after {
+
+    padding: 8px 14px;
+
+    border-radius: 10px;
+
+    background:
+        var(--color-surface-light);
+}
+
+
+/* =========================================================
+   Animação
+   ========================================================= */
+
+@keyframes mathMagicHighlight {
+
+    from {
+
+        transform:
+            scale(0.96);
+
+        opacity:
+            0.4;
+    }
+
+    to {
+
+        transform:
+            scale(1);
+
+        opacity:
+            1;
+    }
 }
