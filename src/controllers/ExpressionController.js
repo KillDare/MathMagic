@@ -52,6 +52,21 @@ export class ExpressionController {
         const key = event.key;
 
         /*
+         * Navegação pela expressão
+         */
+        if (key === "ArrowLeft") {
+            event.preventDefault();
+            this.moveSelection(-1);
+            return;
+        }
+
+        if (key === "ArrowRight") {
+            event.preventDefault();
+            this.moveSelection(1);
+            return;
+        }
+
+        /*
          * Números
          */
         if (/^[0-9]$/.test(key)) {
@@ -124,24 +139,51 @@ export class ExpressionController {
     inputNumber(value) {
         const root = this.expression.getRoot();
 
-        if (!root || root.type === NodeTypes.SLOT) {
-            const node = new MathNode(NodeTypes.NUMBER, {
-                value
-            });
+        /*
+         * Expressão vazia.
+         */
+        if (!root) {
+            const node = new MathNode(
+                NodeTypes.NUMBER,
+                {
+                    value
+                }
+            );
 
             this.expression.setRoot(node);
+            this.expression.selectedNodeId = node.id;
+
             this.saveState();
             this.update();
             return;
         }
-
         const selectedNode = this.findNodeById(
             root,
             this.expression.selectedNodeId
         );
 
-        if (selectedNode?.type === NodeTypes.NUMBER) {
-            selectedNode.value = `${selectedNode.value}${value}`;
+        if (
+            selectedNode?.type === NodeTypes.NUMBER
+        ) {
+            selectedNode.value =
+                `${selectedNode.value}${value}`;
+
+            this.saveState();
+            this.update();
+            return;
+        }
+
+        if (
+            selectedNode?.type === NodeTypes.SLOT
+        ) {
+            selectedNode.type =
+                NodeTypes.NUMBER;
+
+            selectedNode.value = value;
+            selectedNode.children = [];
+
+            this.expression.selectedNodeId =
+                selectedNode.id;
 
             this.saveState();
             this.update();
@@ -155,6 +197,9 @@ export class ExpressionController {
             slot.value = value;
             slot.children = [];
 
+            this.expression.selectedNodeId =
+                slot.id;
+
             this.saveState();
             this.update();
         }
@@ -167,53 +212,77 @@ export class ExpressionController {
             return;
         }
 
-        if (
-            root.type === NodeTypes.NUMBER ||
-            root.type === NodeTypes.VARIABLE
-        ) {
-            const operation = new MathNode(operatorType);
+        /*
+         * Descobre o nó atualmente selecionado.
+         */
+        let selectedNode = this.findNodeById(
+            root,
+            this.expression.selectedNodeId
+        );
 
-            operation.addChild(root);
-            operation.addChild(
-                new MathNode(NodeTypes.SLOT)
+        /*
+         * Se não existe seleção, usamos o último
+         * valor da expressão.
+         */
+        if (!selectedNode) {
+            selectedNode = this.findLastValue(root);
+        }
+
+        if (!selectedNode) {
+            return;
+        }
+
+        if (selectedNode.type === NodeTypes.SLOT) {
+            return;
+        }
+
+        if (
+            selectedNode.type !== NodeTypes.NUMBER &&
+            selectedNode.type !== NodeTypes.VARIABLE &&
+            selectedNode.type !== NodeTypes.PARENTHESIS
+        ) {
+            return;
+        }
+
+        const parentInfo = this.findParent(
+            root,
+            selectedNode
+        );
+
+        const operation = new MathNode(
+            operatorType
+        );
+
+        operation.addChild(
+            selectedNode
+        );
+
+        const slot = new MathNode(
+            NodeTypes.SLOT
+        );
+
+        operation.addChild(slot);
+
+        if (!parentInfo) {
+            this.expression.setRoot(
+                operation
             );
 
-            this.expression.setRoot(operation);
+            this.expression.selectedNodeId =
+                slot.id;
 
             this.saveState();
             this.update();
             return;
         }
 
-        const slot = this.findFirstSlot(root);
-
-        if (slot) {
-            return;
-        }
-
-        const lastNumber = this.findLastNumber(root);
-
-        if (!lastNumber) {
-            return;
-        }
-
-        const parentInfo = this.findParent(root, lastNumber);
-
-        if (!parentInfo) {
-            return;
-        }
-
-        const operation = new MathNode(operatorType);
-
-        operation.addChild(lastNumber);
-        operation.addChild(
-            new MathNode(NodeTypes.SLOT)
-        );
-
         parentInfo.parent.setChild(
             parentInfo.index,
             operation
         );
+
+        this.expression.selectedNodeId =
+            slot.id;
 
         this.saveState();
         this.update();
@@ -222,23 +291,23 @@ export class ExpressionController {
     inputParenthesisOpen() {
         const root = this.expression.getRoot();
 
-        /*
-         * Expressão vazia:
-         *
-         * (
-         *   SLOT
-         * )
-         */
         if (!root) {
             const parenthesis = new MathNode(
                 NodeTypes.PARENTHESIS
             );
 
-            parenthesis.addChild(
-                new MathNode(NodeTypes.SLOT)
+            const slot = new MathNode(
+                NodeTypes.SLOT
             );
 
-            this.expression.setRoot(parenthesis);
+            parenthesis.addChild(slot);
+
+            this.expression.setRoot(
+                parenthesis
+            );
+
+            this.expression.selectedNodeId =
+                slot.id;
 
             this.saveState();
             this.update();
@@ -246,74 +315,118 @@ export class ExpressionController {
         }
 
         /*
-         * Se existe um SLOT, usamos o SLOT
-         * como conteúdo do novo parêntese.
+         * Nó selecionado.
+         */
+        const selectedNode =
+            this.findNodeById(
+                root,
+                this.expression.selectedNodeId
+            );
+
+        if (
+            selectedNode?.type === NodeTypes.SLOT
+        ) {
+            selectedNode.type =
+                NodeTypes.PARENTHESIS;
+
+            selectedNode.value = null;
+
+            const slot = new MathNode(
+                NodeTypes.SLOT
+            );
+
+            selectedNode.children = [
+                slot
+            ];
+
+            this.expression.selectedNodeId =
+                slot.id;
+
+            this.saveState();
+            this.update();
+            return;
+        }
+
+        if (
+            selectedNode?.type === NodeTypes.NUMBER ||
+            selectedNode?.type === NodeTypes.PARENTHESIS
+        ) {
+            const parentInfo =
+                this.findParent(
+                    root,
+                    selectedNode
+                );
+
+            const parenthesis =
+                new MathNode(
+                    NodeTypes.PARENTHESIS
+                );
+
+            const slot =
+                new MathNode(
+                    NodeTypes.SLOT
+                );
+
+            parenthesis.addChild(slot);
+
+            const multiplication =
+                new MathNode(
+                    NodeTypes.MULTIPLY
+                );
+
+            multiplication.addChild(
+                selectedNode
+            );
+
+            multiplication.addChild(
+                parenthesis
+            );
+
+            if (!parentInfo) {
+                this.expression.setRoot(
+                    multiplication
+                );
+            } else {
+                parentInfo.parent.setChild(
+                    parentInfo.index,
+                    multiplication
+                );
+            }
+
+            this.expression.selectedNodeId =
+                slot.id;
+
+            this.saveState();
+            this.update();
+            return;
+        }
+
+        /*
+         * Fallback.
          */
         const slot = this.findFirstSlot(root);
 
         if (slot) {
-            slot.type = NodeTypes.PARENTHESIS;
+            slot.type =
+                NodeTypes.PARENTHESIS;
+
             slot.value = null;
+
+            const child =
+                new MathNode(
+                    NodeTypes.SLOT
+                );
+
             slot.children = [
-                new MathNode(NodeTypes.SLOT)
+                child
             ];
 
-            this.saveState();
-            this.update();
-            return;
-        }
-
-        const lastValue = this.findLastValue(root);
-
-        if (!lastValue) {
-            return;
-        }
-
-        const parentInfo =
-            this.findParent(
-                root,
-                lastValue
-            );
-
-        const parenthesis =
-            new MathNode(
-                NodeTypes.PARENTHESIS
-            );
-
-        parenthesis.addChild(
-            new MathNode(NodeTypes.SLOT)
-        );
-
-        const multiplication =
-            new MathNode(
-                NodeTypes.MULTIPLY
-            );
-
-        multiplication.addChild(
-            lastValue
-        );
-
-        multiplication.addChild(
-            parenthesis
-        );
-
-        if (!parentInfo) {
-            this.expression.setRoot(
-                multiplication
-            );
+            this.expression.selectedNodeId =
+                child.id;
 
             this.saveState();
             this.update();
-            return;
         }
-
-        parentInfo.parent.setChild(
-            parentInfo.index,
-            multiplication
-        );
-
-        this.saveState();
-        this.update();
     }
 
     inputParenthesisClose() {
@@ -330,9 +443,10 @@ export class ExpressionController {
             return;
         }
 
-        const slot = this.findFirstSlot(
-            openParenthesis
-        );
+        const slot =
+            this.findFirstSlot(
+                openParenthesis
+            );
 
         if (slot) {
             return;
@@ -341,8 +455,9 @@ export class ExpressionController {
         this.expression.selectedNodeId =
             openParenthesis.id;
 
-        this.saveState();
-        this.update();
+        this.renderer.render(
+            this.expression
+        );
     }
 
     findOpenParenthesis(node) {
@@ -373,6 +488,9 @@ export class ExpressionController {
     inputDecimal() {
         const root = this.expression.getRoot();
 
+        /*
+         * Expressão vazia.
+         */
         if (!root) {
             const node = new MathNode(
                 NodeTypes.NUMBER,
@@ -382,27 +500,28 @@ export class ExpressionController {
             );
 
             this.expression.setRoot(node);
+            this.expression.selectedNodeId = node.id;
 
             this.saveState();
             this.update();
             return;
         }
 
-        const selectedNode = this.findNodeById(
-            root,
-            this.expression.selectedNodeId
-        );
-
-        if (selectedNode?.type === NodeTypes.NUMBER) {
-            const value = String(
-                selectedNode.value
+        const selectedNode =
+            this.findNodeById(
+                root,
+                this.expression.selectedNodeId
             );
 
-            /*
-             * Impede:
-             *
-             * 12.3.4
-             */
+        /*
+         * Número selecionado.
+         */
+        if (
+            selectedNode?.type === NodeTypes.NUMBER
+        ) {
+            const value =
+                String(selectedNode.value);
+
             if (value.includes(".")) {
                 return;
             }
@@ -415,7 +534,27 @@ export class ExpressionController {
         }
 
         /*
-         * Se existir SLOT, começa um número decimal.
+         * SLOT selecionado.
+         */
+        if (
+            selectedNode?.type === NodeTypes.SLOT
+        ) {
+            selectedNode.type =
+                NodeTypes.NUMBER;
+
+            selectedNode.value = "0.";
+            selectedNode.children = [];
+
+            this.expression.selectedNodeId =
+                selectedNode.id;
+
+            this.saveState();
+            this.update();
+            return;
+        }
+
+        /*
+         * Fallback.
          */
         const slot = this.findFirstSlot(root);
 
@@ -424,11 +563,13 @@ export class ExpressionController {
             slot.value = "0.";
             slot.children = [];
 
+            this.expression.selectedNodeId =
+                slot.id;
+
             this.saveState();
             this.update();
         }
     }
-
 
     backspace() {
         const root = this.expression.getRoot();
@@ -437,56 +578,77 @@ export class ExpressionController {
             return;
         }
 
-        const selectedNode = this.findNodeById(
-            root,
-            this.expression.selectedNodeId
-        );
+        const selectedNode =
+            this.findNodeById(
+                root,
+                this.expression.selectedNodeId
+            );
 
-        /*
-         * Apagar um dígito de um número.
-         */
-        if (selectedNode?.type === NodeTypes.NUMBER) {
-            const value = String(selectedNode.value);
+        if (!selectedNode) {
+            return;
+        }
+
+        if (
+            selectedNode.type === NodeTypes.NUMBER
+        ) {
+            const value =
+                String(selectedNode.value);
 
             if (value.length > 1) {
-                selectedNode.value = value.slice(0, -1);
+                selectedNode.value =
+                    value.slice(0, -1);
 
                 this.saveState();
                 this.update();
                 return;
             }
 
-            /*
-             * Número de apenas um dígito:
-             * transforma novamente em SLOT.
-             */
-            selectedNode.type = NodeTypes.SLOT;
+            selectedNode.type =
+                NodeTypes.SLOT;
+
             selectedNode.value = null;
+            selectedNode.children = [];
 
             this.saveState();
             this.update();
             return;
         }
 
-        /*
-         * Se houver SLOT, tenta remover
-         * a operação correspondente.
-         */
-        const slotInfo = this.findFirstSlotWithParent(root);
+        if (
+            selectedNode.type === NodeTypes.SLOT
+        ) {
+            const slotInfo =
+                this.findFirstSlotWithParent(
+                    root
+                );
 
-        if (slotInfo?.parent) {
-            const parent = slotInfo.parent;
+            if (
+                slotInfo?.slot !== selectedNode ||
+                !slotInfo.parent
+            ) {
+                return;
+            }
+
+            const parent =
+                slotInfo.parent;
 
             if (
                 parent.children.length === 2 &&
-                parent.getChild(1) === slotInfo.slot
+                parent.getChild(1) === selectedNode
             ) {
-                const left = parent.getChild(0);
+                const left =
+                    parent.getChild(0);
 
-                const parentInfo = this.findParent(root, parent);
+                const parentInfo =
+                    this.findParent(
+                        root,
+                        parent
+                    );
 
                 if (!parentInfo) {
-                    this.expression.setRoot(left);
+                    this.expression.setRoot(
+                        left
+                    );
                 } else {
                     parentInfo.parent.setChild(
                         parentInfo.index,
@@ -494,11 +656,86 @@ export class ExpressionController {
                     );
                 }
 
+                this.expression.selectedNodeId =
+                    left.id;
+
                 this.saveState();
                 this.update();
             }
         }
     }
+
+    moveSelection(direction) {
+        const root = this.expression.getRoot();
+
+        if (!root) {
+            return;
+        }
+
+        const nodes = this.getNavigableNodes(root);
+
+        if (nodes.length === 0) {
+            return;
+        }
+
+        let currentIndex = nodes.findIndex(
+            node => node.id === this.expression.selectedNodeId
+        );
+
+        if (currentIndex === -1) {
+            currentIndex = direction > 0
+                ? 0
+                : nodes.length - 1;
+        } else {
+            currentIndex += direction;
+        }
+
+        currentIndex = Math.max(
+            0,
+            Math.min(
+                currentIndex,
+                nodes.length - 1
+            )
+        );
+
+        const node = nodes[currentIndex];
+
+        this.expression.selectedNodeId = node.id;
+
+        this.renderer.render(this.expression);
+    }
+
+    getNavigableNodes(node) {
+        if (!node) {
+            return [];
+        }
+
+        const nodes = [];
+
+        const visit = current => {
+            if (!current) {
+                return;
+            }
+
+            if (
+                current.type === NodeTypes.NUMBER ||
+                current.type === NodeTypes.VARIABLE ||
+                current.type === NodeTypes.SLOT
+            ) {
+                nodes.push(current);
+                return;
+            }
+
+            for (const child of current.children) {
+                visit(child);
+            }
+        };
+
+        visit(node);
+
+        return nodes;
+    }
+
 
     selectNode(nodeId) {
         this.expression.selectedNodeId = nodeId;
