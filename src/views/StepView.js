@@ -19,7 +19,10 @@ export class StepView {
         this.container.innerHTML = "";
 
 
-        if (!steps || steps.length === 0) {
+        if (
+            !steps ||
+            steps.length === 0
+        ) {
 
             this.renderEmpty();
 
@@ -43,12 +46,18 @@ export class StepView {
     // Renderiza um passo
     // =========================================================
 
-    renderStep(step, index) {
+    renderStep(
+        step,
+        index
+    ) {
 
         const element =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
-        element.className = "step";
+        element.className =
+            "step";
 
 
         // -----------------------------------------------------
@@ -56,7 +65,9 @@ export class StepView {
         // -----------------------------------------------------
 
         const number =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         number.className =
             "step__number";
@@ -70,7 +81,9 @@ export class StepView {
         // -----------------------------------------------------
 
         const content =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         content.className =
             "step__content";
@@ -81,7 +94,9 @@ export class StepView {
         // -----------------------------------------------------
 
         const description =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         description.className =
             "step__description";
@@ -95,7 +110,9 @@ export class StepView {
         // -----------------------------------------------------
 
         const expressionContainer =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         expressionContainer.className =
             "step__expression";
@@ -104,8 +121,10 @@ export class StepView {
         const expression =
             new Expression();
 
+
         expression.setRoot(
-            step.node
+            step.node,
+            false
         );
 
 
@@ -155,7 +174,9 @@ export class StepView {
     renderEmpty() {
 
         const element =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         element.className =
             "steps-empty";
@@ -169,6 +190,50 @@ export class StepView {
                 A resolução aparecerá aqui.
             </span>
         `;
+
+
+        this.container.appendChild(
+            element
+        );
+    }
+
+
+    // =========================================================
+    // Erro
+    // =========================================================
+
+    renderError(message) {
+
+        this.container.innerHTML = "";
+
+
+        const element =
+            document.createElement(
+                "div"
+            );
+
+        element.className =
+            "steps-empty steps-empty--error";
+
+
+        element.innerHTML = `
+            <span class="steps-empty__icon">
+                !
+            </span>
+
+            <span class="steps-empty__text"></span>
+        `;
+
+
+        const text =
+            element.querySelector(
+                ".steps-empty__text"
+            );
+
+
+        text.textContent =
+            message ||
+            "Não foi possível resolver a expressão.";
 
 
         this.container.appendChild(

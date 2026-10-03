@@ -1,10 +1,68 @@
 import { MathNode } from "../models/MathNode.js";
+
 import {
     NodeTypes,
     getPrecedence
 } from "../models/NodeTypes.js";
 
+
 export class MathEngine {
+
+    // =========================================================
+    // Validação
+    // =========================================================
+
+    isComplete(node) {
+
+        if (!node) {
+            return false;
+        }
+
+
+        // -----------------------------------------------------
+        // SLOT significa que a expressão ainda está incompleta.
+        // -----------------------------------------------------
+
+        if (
+            node.type === NodeTypes.SLOT
+        ) {
+
+            return false;
+        }
+
+
+        // -----------------------------------------------------
+        // Folhas válidas.
+        // -----------------------------------------------------
+
+        if (
+            node.type === NodeTypes.NUMBER ||
+            node.type === NodeTypes.VARIABLE
+        ) {
+
+            return true;
+        }
+
+
+        // -----------------------------------------------------
+        // Verifica todos os filhos.
+        // -----------------------------------------------------
+
+        if (
+            !node.children ||
+            node.children.length === 0
+        ) {
+
+            return false;
+        }
+
+
+        return node.children.every(
+            child =>
+                this.isComplete(child)
+        );
+    }
+
 
     // =========================================================
     // Avaliação
@@ -13,7 +71,9 @@ export class MathEngine {
     evaluate(node) {
 
         if (!node) {
-            throw new Error("Não é possível calcular um nó vazio.");
+            throw new Error(
+                "Não é possível calcular um nó vazio."
+            );
         }
 
 
@@ -97,10 +157,13 @@ export class MathEngine {
 
     evaluateNumber(node) {
 
-        const value = Number(node.value);
+        const value =
+            Number(node.value);
 
 
-        if (!Number.isFinite(value)) {
+        if (
+            !Number.isFinite(value)
+        ) {
 
             throw new Error(
                 `Valor numérico inválido: ${node.value}`
@@ -119,10 +182,14 @@ export class MathEngine {
     evaluateDivision(node) {
 
         const divisor =
-            this.evaluate(node.getChild(1));
+            this.evaluate(
+                node.getChild(1)
+            );
 
 
-        if (divisor === 0) {
+        if (
+            divisor === 0
+        ) {
 
             throw new Error(
                 "Não é possível dividir por zero."
@@ -131,7 +198,9 @@ export class MathEngine {
 
 
         return (
-            this.evaluate(node.getChild(0)) /
+            this.evaluate(
+                node.getChild(0)
+            ) /
             divisor
         );
     }
@@ -148,25 +217,56 @@ export class MathEngine {
         }
 
 
+        // -----------------------------------------------------
+        // Não tentamos resolver expressões incompletas.
+        // -----------------------------------------------------
+
+        if (
+            !this.isComplete(root)
+        ) {
+
+            return [];
+        }
+
+
+        // -----------------------------------------------------
         // Trabalhamos sempre sobre uma cópia.
-        let current = this.cloneNode(root);
+        //
+        // A expressão original nunca é modificada.
+        // -----------------------------------------------------
+
+        let current =
+            this.cloneNode(root);
 
 
         const steps = [];
 
 
+        // -----------------------------------------------------
         // Primeiro passo:
-        // a expressão original.
+        // expressão original.
+        // -----------------------------------------------------
+
         steps.push({
-            node: this.cloneNode(current),
-            description: "Expressão inicial"
+
+            node:
+                this.cloneNode(current),
+
+            description:
+                "Expressão inicial"
         });
 
+
+        // -----------------------------------------------------
+        // Redução progressiva.
+        // -----------------------------------------------------
 
         while (true) {
 
             const target =
-                this.findNextOperation(current);
+                this.findNextOperation(
+                    current
+                );
 
 
             if (!target) {
@@ -175,7 +275,9 @@ export class MathEngine {
 
 
             const replacement =
-                this.reduceNode(target.node);
+                this.reduceNode(
+                    target.node
+                );
 
 
             if (!replacement) {
@@ -183,7 +285,9 @@ export class MathEngine {
             }
 
 
-            if (target.parent) {
+            if (
+                target.parent
+            ) {
 
                 target.parent.setChild(
                     target.childIndex,
@@ -192,14 +296,36 @@ export class MathEngine {
 
             } else {
 
-                current = replacement;
+                current =
+                    replacement;
             }
 
 
             steps.push({
-                node: this.cloneNode(current),
-                description: target.description
+
+                node:
+                    this.cloneNode(current),
+
+                description:
+                    target.description
             });
+        }
+
+
+        // -----------------------------------------------------
+        // Se não houve redução e a expressão não é um número,
+        // significa que o motor ainda não sabe resolver esse
+        // tipo de expressão.
+        // -----------------------------------------------------
+
+        if (
+            steps.length === 1 &&
+            current.type !== NodeTypes.NUMBER
+        ) {
+
+            throw new Error(
+                "O MathMagic ainda não consegue resolver esta expressão."
+            );
         }
 
 
@@ -222,13 +348,17 @@ export class MathEngine {
         }
 
 
-        // ---------------------------------------------------------
+        // -----------------------------------------------------
         // Parênteses
-        // ---------------------------------------------------------
+        // -----------------------------------------------------
 
-        if (node.type === NodeTypes.PARENTHESIS) {
+        if (
+            node.type ===
+            NodeTypes.PARENTHESIS
+        ) {
 
-            const child = node.getChild(0);
+            const child =
+                node.getChild(0);
 
 
             const inner =
@@ -246,14 +376,20 @@ export class MathEngine {
 
             if (
                 child &&
-                child.type === NodeTypes.NUMBER
+                child.type ===
+                NodeTypes.NUMBER
             ) {
 
                 return {
+
                     node,
+
                     parent,
+
                     childIndex,
-                    description: "Removemos os parênteses"
+
+                    description:
+                        "Removemos os parênteses"
                 };
             }
 
@@ -262,19 +398,25 @@ export class MathEngine {
         }
 
 
-        // ---------------------------------------------------------
+        // -----------------------------------------------------
         // Operação binária
-        // ---------------------------------------------------------
+        // -----------------------------------------------------
 
-        if (this.isBinaryOperation(node)) {
+        if (
+            this.isBinaryOperation(node)
+        ) {
 
-            const left = node.getChild(0);
-            const right = node.getChild(1);
+            const left =
+                node.getChild(0);
 
 
-            // -----------------------------------------------------
-            // Primeiro procuramos operações internas.
-            // -----------------------------------------------------
+            const right =
+                node.getChild(1);
+
+
+            // -------------------------------------------------
+            // Procuramos operações internas.
+            // -------------------------------------------------
 
             const leftOperation =
                 this.findNextOperation(
@@ -292,12 +434,15 @@ export class MathEngine {
                 );
 
 
-            // -----------------------------------------------------
-            // Se existem operações internas, precisamos escolher
-            // aquela com maior precedência.
-            // -----------------------------------------------------
+            // -------------------------------------------------
+            // Se existem operações dos dois lados,
+            // escolhemos a de maior precedência.
+            // -------------------------------------------------
 
-            if (leftOperation && rightOperation) {
+            if (
+                leftOperation &&
+                rightOperation
+            ) {
 
                 const leftPrecedence =
                     getPrecedence(
@@ -315,6 +460,7 @@ export class MathEngine {
                     rightPrecedence >
                     leftPrecedence
                 ) {
+
                     return rightOperation;
                 }
 
@@ -323,20 +469,26 @@ export class MathEngine {
             }
 
 
-            if (leftOperation) {
+            if (
+                leftOperation
+            ) {
+
                 return leftOperation;
             }
 
 
-            if (rightOperation) {
+            if (
+                rightOperation
+            ) {
+
                 return rightOperation;
             }
 
 
-            // -----------------------------------------------------
-            // Se os dois lados são números, a própria operação
-            // pode ser executada.
-            // -----------------------------------------------------
+            // -------------------------------------------------
+            // Se ambos os lados são números, podemos executar
+            // a operação atual.
+            // -------------------------------------------------
 
             if (
                 this.canEvaluate(left) &&
@@ -344,11 +496,17 @@ export class MathEngine {
             ) {
 
                 return {
+
                     node,
+
                     parent,
+
                     childIndex,
+
                     description:
-                        this.getOperationDescription(node)
+                        this.getOperationDescription(
+                            node
+                        )
                 };
             }
         }
@@ -374,18 +532,23 @@ export class MathEngine {
         // -----------------------------------------------------
 
         if (
-            node.type === NodeTypes.PARENTHESIS
+            node.type ===
+            NodeTypes.PARENTHESIS
         ) {
 
-            const child = node.getChild(0);
+            const child =
+                node.getChild(0);
 
 
             if (
                 child &&
-                child.type === NodeTypes.NUMBER
+                child.type ===
+                NodeTypes.NUMBER
             ) {
 
-                return this.cloneNode(child);
+                return this.cloneNode(
+                    child
+                );
             }
 
 
@@ -397,15 +560,21 @@ export class MathEngine {
         // Operações binárias
         // -----------------------------------------------------
 
-        if (this.isBinaryOperation(node)) {
+        if (
+            this.isBinaryOperation(node)
+        ) {
 
-            const value = this.evaluate(node);
+            const value =
+                this.evaluate(node);
 
 
             return new MathNode(
                 NodeTypes.NUMBER,
                 {
-                    value: this.formatNumber(value)
+                    value:
+                        this.formatNumber(
+                            value
+                        )
                 }
             );
         }
@@ -477,26 +646,32 @@ export class MathEngine {
         switch (node.type) {
 
             case NodeTypes.ADD:
+
                 return "Efetuamos a soma";
 
 
             case NodeTypes.SUBTRACT:
+
                 return "Efetuamos a subtração";
 
 
             case NodeTypes.MULTIPLY:
+
                 return "Efetuamos a multiplicação";
 
 
             case NodeTypes.DIVIDE:
+
                 return "Efetuamos a divisão";
 
 
             case NodeTypes.POWER:
+
                 return "Calculamos a potência";
 
 
             default:
+
                 return "Efetuamos a operação";
         }
     }
@@ -517,15 +692,23 @@ export class MathEngine {
             new MathNode(
                 node.type,
                 {
-                    value: node.value
+                    value:
+                        node.value,
+
+                    id:
+                        node.id
                 }
             );
 
 
-        for (const child of node.children) {
+        for (
+            const child of node.children
+        ) {
 
             clone.addChild(
-                this.cloneNode(child)
+                this.cloneNode(
+                    child
+                )
             );
         }
 
@@ -540,7 +723,10 @@ export class MathEngine {
 
     formatNumber(value) {
 
-        if (Number.isInteger(value)) {
+        if (
+            Number.isInteger(value)
+        ) {
+
             return String(value);
         }
 

@@ -1,6 +1,7 @@
 import { Expression } from "./models/Expression.js";
 
 import { Renderer } from "./services/Renderer.js";
+import { MathEngine } from "./services/MathEngine.js";
 
 import {
     ExpressionController
@@ -11,6 +12,7 @@ import {
 } from "./controllers/ToolbarController.js";
 
 import { ToolbarView } from "./views/ToolbarView.js";
+import { StepView } from "./views/StepView.js";
 
 
 // =========================================================
@@ -26,6 +28,12 @@ const expressionContainer =
 const toolbarContainer =
     document.querySelector(
         ".toolbar"
+    );
+
+
+const stepsContainer =
+    document.querySelector(
+        "#steps"
     );
 
 
@@ -49,19 +57,86 @@ const renderer =
     );
 
 
+const mathEngine =
+    new MathEngine();
+
+
+const stepView =
+    new StepView(
+        stepsContainer
+    );
+
+
 // =========================================================
-// Atualização
+// Atualização da expressão
 // =========================================================
 
 function expressionChanged(
     expression
 ) {
 
-    // Por enquanto o callback existe apenas
-    // para manter o fluxo centralizado.
+    // ---------------------------------------------------------
+    // Expressão vazia
+    // ---------------------------------------------------------
+
+    if (
+        !expression ||
+        expression.isEmpty()
+    ) {
+
+        stepView.render([]);
+
+        return;
+    }
+
+
+    // ---------------------------------------------------------
+    // Verifica se a expressão está completa.
     //
-    // O MathEngine/StepView poderá ser ligado
-    // aqui novamente conforme a resolução evoluir.
+    // Enquanto existir um SLOT, ainda não podemos
+    // iniciar a resolução.
+    // ---------------------------------------------------------
+
+    if (
+        !mathEngine.isComplete(
+            expression.getRoot()
+        )
+    ) {
+
+        stepView.render([]);
+
+        return;
+    }
+
+
+    // ---------------------------------------------------------
+    // Gera os passos da resolução.
+    // ---------------------------------------------------------
+
+    try {
+
+        const steps =
+            mathEngine.generateSteps(
+                expression.getRoot()
+            );
+
+
+        stepView.render(
+            steps
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Erro ao resolver expressão:",
+            error
+        );
+
+
+        stepView.renderError(
+            error.message
+        );
+    }
 }
 
 
@@ -127,7 +202,6 @@ document.addEventListener(
 
             event.preventDefault();
 
-
             toolbarController.undo();
 
             return;
@@ -144,7 +218,6 @@ document.addEventListener(
         ) {
 
             event.preventDefault();
-
 
             toolbarController.redo();
 
@@ -167,7 +240,6 @@ document.addEventListener(
 
             event.preventDefault();
 
-
             toolbarController.redo();
         }
     }
@@ -181,3 +253,6 @@ document.addEventListener(
 renderer.render(
     expression
 );
+
+
+stepView.render([]); 
