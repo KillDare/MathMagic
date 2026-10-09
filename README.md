@@ -373,3 +373,20 @@ https://github.com/KillDare
 ## 📄 Licença
 
 Ainda não definida.
+
+## Testes e validação do núcleo
+
+O projeto inclui testes automatizados com o runner nativo do Node.js. Com Node.js 18 ou superior, execute na raiz do projeto:
+
+```bash
+npm test
+```
+
+Os testes cobrem operações básicas, estrutura válida/inválida da árvore, divisão por zero e o histórico compartilhado entre `Expression` e `ExpressionController`.
+
+### Decisões de estabilidade (0.1.1)
+
+- `Expression` é a fonte única de verdade para o histórico de edição.
+- Estados idênticos não são adicionados repetidamente ao histórico.
+- O histórico é limitado a 100 estados e uma nova edição após Undo elimina o ramo de Redo.
+- `MathEngine.isComplete()` valida a aridade das operações, folhas numéricas, parênteses e nós não suportados antes de permitir a resolução.

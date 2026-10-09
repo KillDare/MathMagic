@@ -439,9 +439,39 @@ export class Expression {
     // =========================================================
 
     saveHistory() {
-        if (this.isRestoringHistory) { return; } const snapshot = this.cloneNode(this.root);
-        if (this.historyIndex < this.history.length - 1) { this.history = this.history.slice(0, this.historyIndex + 1); }
-        this.history.push(snapshot); this.historyIndex = this.history.length - 1;
+        if (this.isRestoringHistory) {
+            return false;
+        }
+
+        const snapshot = this.cloneNode(this.root);
+        const serializedSnapshot = JSON.stringify(snapshot);
+        const currentSnapshot = this.history[this.historyIndex];
+
+        // Evita estados duplicados quando uma operação usa setRoot()
+        // e, em seguida, o controlador registra a mesma edição.
+        if (
+            this.historyIndex >= 0 &&
+            JSON.stringify(currentSnapshot) === serializedSnapshot
+        ) {
+            return false;
+        }
+
+        // Uma nova edição depois de Undo descarta o ramo de Redo.
+        if (this.historyIndex < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyIndex + 1);
+        }
+
+        this.history.push(snapshot);
+        this.historyIndex = this.history.length - 1;
+
+        // Mantém o histórico limitado para evitar crescimento indefinido.
+        const maxHistory = 100;
+        if (this.history.length > maxHistory) {
+            this.history.shift();
+            this.historyIndex--;
+        }
+
+        return true;
     }
 
     // =========================================================

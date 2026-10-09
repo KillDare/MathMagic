@@ -881,69 +881,29 @@ export class ExpressionController {
     }
 
     saveState() {
-        const state = this.cloneTree(
-            this.expression.getRoot()
-        );
-
-        this.history = this.history.slice(
-            0,
-            this.historyIndex + 1
-        );
-
-        this.history.push(state);
-        this.historyIndex++;
-
-        if (this.history.length > 100) {
-            this.history.shift();
-            this.historyIndex--;
-        }
+        this.expression.saveHistory();
     }
 
     undo() {
-        if (this.historyIndex <= 0) {
-            return;
+        if (!this.expression.undo()) {
+            return false;
         }
 
-        this.historyIndex--;
-
-        const state = this.history[this.historyIndex];
-
-        this.expression.setRoot(
-            this.cloneTree(state)
-        );
-
-        this.expression.selectedNodeId = null;
-
         this.update();
+        return true;
     }
 
     redo() {
-        if (
-            this.historyIndex >=
-            this.history.length - 1
-        ) {
-            return;
+        if (!this.expression.redo()) {
+            return false;
         }
 
-        this.historyIndex++;
-
-        const state = this.history[this.historyIndex];
-
-        this.expression.setRoot(
-            this.cloneTree(state)
-        );
-
-        this.expression.selectedNodeId = null;
-
         this.update();
+        return true;
     }
 
     clear() {
-        this.expression.setRoot(null);
-
-        this.expression.selectedNodeId = null;
-
-        this.saveState();
+        this.expression.clear();
         this.update();
     }
 

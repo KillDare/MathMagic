@@ -13,56 +13,44 @@ export class MathEngine {
     // =========================================================
 
     isComplete(node) {
-
-        if (!node) {
+        if (!node || !Array.isArray(node.children)) {
             return false;
         }
 
-
-        // -----------------------------------------------------
-        // SLOT = expressão incompleta
-        // -----------------------------------------------------
-
-        if (
-            node.type === NodeTypes.SLOT
-        ) {
-
+        if (node.type === NodeTypes.SLOT) {
             return false;
         }
 
+        if (node.type === NodeTypes.NUMBER) {
+            if (node.children.length !== 0 || node.value === null || String(node.value).trim() === "") {
+                return false;
+            }
 
-        // -----------------------------------------------------
-        // Valores simples
-        // -----------------------------------------------------
-
-        if (
-            node.type === NodeTypes.NUMBER ||
-            node.type === NodeTypes.VARIABLE
-        ) {
-
-            return true;
+            return Number.isFinite(Number(node.value));
         }
 
+        if (node.type === NodeTypes.VARIABLE) {
+            return node.children.length === 0 && String(node.value ?? "").trim() !== "";
+        }
 
-        // -----------------------------------------------------
-        // Operações precisam possuir filhos
-        // -----------------------------------------------------
+        if (node.type === NodeTypes.PARENTHESIS) {
+            return node.children.length === 1 && this.isComplete(node.children[0]);
+        }
 
-        if (
-            !node.children ||
-            node.children.length === 0
-        ) {
+        const binaryOperators = new Set([
+            NodeTypes.ADD,
+            NodeTypes.SUBTRACT,
+            NodeTypes.MULTIPLY,
+            NodeTypes.DIVIDE,
+            NodeTypes.POWER
+        ]);
 
+        if (!binaryOperators.has(node.type) || node.children.length !== 2) {
             return false;
         }
 
-
-        return node.children.every(
-            child =>
-                this.isComplete(child)
-        );
+        return node.children.every(child => this.isComplete(child));
     }
-
 
     // =========================================================
     // Avaliação
