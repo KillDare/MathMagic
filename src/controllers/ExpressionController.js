@@ -2,17 +2,17 @@ import { NodeTypes } from "../models/NodeTypes.js";
 import { MathNode } from "../models/MathNode.js";
 
 export class ExpressionController {
-    constructor(expression, renderer, container) {
+    constructor(
+        expression,
+        renderer,
+        container
+    ) {
         this.expression = expression;
         this.renderer = renderer;
         this.container = container;
-
-        this.history = [];
-        this.historyIndex = -1;
-
+        this.cursorNodeId = null;
         this.onChange = null;
 
-        this.saveState();
         this.bindEvents();
     }
 
@@ -21,21 +21,30 @@ export class ExpressionController {
     }
 
     bindEvents() {
-        this.container.addEventListener("click", (event) => {
-            const nodeElement = event.target.closest("[data-node-id]");
+        this.container.addEventListener(
+            "click",
+            event => {
+                const nodeElement =
+                    event.target.closest(
+                        "[data-node-id]"
+                    );
 
-            if (!nodeElement) {
-                return;
+                if (!nodeElement) {
+                    return;
+                }
+
+                this.selectNode(
+                    nodeElement.dataset.nodeId
+                );
             }
+        );
 
-            const nodeId = nodeElement.dataset.nodeId;
-
-            this.selectNode(nodeId);
-        });
-
-        document.addEventListener("keydown", (event) => {
-            this.handleKeyboard(event);
-        });
+        document.addEventListener(
+            "keydown",
+            event => {
+                this.handleKeyboard(event);
+            }
+        );
     }
 
     handleKeyboard(event) {
@@ -51,33 +60,36 @@ export class ExpressionController {
 
         const key = event.key;
 
-        /*
-         * Navegação pela expressão
-         */
         if (key === "ArrowLeft") {
             event.preventDefault();
-            this.moveSelection(-1);
+            this.moveCursor(-1);
             return;
         }
 
         if (key === "ArrowRight") {
             event.preventDefault();
-            this.moveSelection(1);
+            this.moveCursor(1);
             return;
         }
 
-        /*
-         * Números
-         */
+        if (key === "ArrowUp") {
+            event.preventDefault();
+            this.selectParentNode();
+            return;
+        }
+
+        if (key === "ArrowDown") {
+            event.preventDefault();
+            this.selectFirstChildNode();
+            return;
+        }
+
         if (/^[0-9]$/.test(key)) {
             event.preventDefault();
             this.inputNumber(key);
             return;
         }
 
-        /*
-         * Operadores
-         */
         const operators = {
             "+": NodeTypes.ADD,
             "-": NodeTypes.SUBTRACT,
@@ -90,13 +102,12 @@ export class ExpressionController {
 
         if (operators[key]) {
             event.preventDefault();
-            this.inputOperator(operators[key]);
+            this.inputOperator(
+                operators[key]
+            );
             return;
         }
 
-        /*
-         * Parênteses
-         */
         if (key === "(") {
             event.preventDefault();
             this.inputParenthesisOpen();
@@ -109,27 +120,24 @@ export class ExpressionController {
             return;
         }
 
-        /*
-         * Decimal
-         */
-        if (key === "." || key === ",") {
+        if (
+            key === "." ||
+            key === ","
+        ) {
             event.preventDefault();
             this.inputDecimal();
             return;
         }
 
-        /*
-         * Backspace
-         */
-        if (key === "Backspace") {
+        if (
+            key === "Backspace" ||
+            key === "Delete"
+        ) {
             event.preventDefault();
             this.backspace();
             return;
         }
 
-        /*
-         * Escape
-         */
         if (key === "Escape") {
             event.preventDefault();
             this.clearSelection();
@@ -137,186 +145,30 @@ export class ExpressionController {
     }
 
     inputNumber(value) {
-        const root = this.expression.getRoot();
+        const root =
+            this.expression.getRoot();
 
-        /*
-         * Expressão vazia.
-         */
         if (!root) {
-            const node = new MathNode(
-                NodeTypes.NUMBER,
-                {
-                    value
-                }
-            );
+            const node =
+                new MathNode(
+                    NodeTypes.NUMBER,
+                    { value }
+                );
 
             this.expression.setRoot(node);
-            this.expression.selectedNodeId = node.id;
 
-            this.saveState();
-            this.update();
-            return;
-        }
-        const selectedNode = this.findNodeById(
-            root,
-            this.expression.selectedNodeId
-        );
+            this.cursorNodeId =
+                node.id;
 
-        if (
-            selectedNode?.type === NodeTypes.NUMBER
-        ) {
-            selectedNode.value =
-                `${selectedNode.value}${value}`;
-
-            this.saveState();
-            this.update();
-            return;
-        }
-
-        if (
-            selectedNode?.type === NodeTypes.SLOT
-        ) {
-            selectedNode.type =
-                NodeTypes.NUMBER;
-
-            selectedNode.value = value;
-            selectedNode.children = [];
-
-            this.expression.selectedNodeId =
-                selectedNode.id;
-
-            this.saveState();
-            this.update();
-            return;
-        }
-
-        const slot = this.findFirstSlot(root);
-
-        if (slot) {
-            slot.type = NodeTypes.NUMBER;
-            slot.value = value;
-            slot.children = [];
-
-            this.expression.selectedNodeId =
-                slot.id;
-
-            this.saveState();
-            this.update();
-        }
-    }
-
-    inputOperator(operatorType) {
-        const root = this.expression.getRoot();
-
-        if (!root) {
-            return;
-        }
-
-        /*
-         * Descobre o nó atualmente selecionado.
-         */
-        let selectedNode = this.findNodeById(
-            root,
-            this.expression.selectedNodeId
-        );
-
-        /*
-         * Se não existe seleção, usamos o último
-         * valor da expressão.
-         */
-        if (!selectedNode) {
-            selectedNode = this.findLastValue(root);
-        }
-
-        if (!selectedNode) {
-            return;
-        }
-
-        if (selectedNode.type === NodeTypes.SLOT) {
-            return;
-        }
-
-        if (
-            selectedNode.type !== NodeTypes.NUMBER &&
-            selectedNode.type !== NodeTypes.VARIABLE &&
-            selectedNode.type !== NodeTypes.PARENTHESIS
-        ) {
-            return;
-        }
-
-        const parentInfo = this.findParent(
-            root,
-            selectedNode
-        );
-
-        const operation = new MathNode(
-            operatorType
-        );
-
-        operation.addChild(
-            selectedNode
-        );
-
-        const slot = new MathNode(
-            NodeTypes.SLOT
-        );
-
-        operation.addChild(slot);
-
-        if (!parentInfo) {
-            this.expression.setRoot(
-                operation
+            this.expression.selectNode(
+                node.id
             );
 
-            this.expression.selectedNodeId =
-                slot.id;
-
-            this.saveState();
             this.update();
+
             return;
         }
 
-        parentInfo.parent.setChild(
-            parentInfo.index,
-            operation
-        );
-
-        this.expression.selectedNodeId =
-            slot.id;
-
-        this.saveState();
-        this.update();
-    }
-
-    inputParenthesisOpen() {
-        const root = this.expression.getRoot();
-
-        if (!root) {
-            const parenthesis = new MathNode(
-                NodeTypes.PARENTHESIS
-            );
-
-            const slot = new MathNode(
-                NodeTypes.SLOT
-            );
-
-            parenthesis.addChild(slot);
-
-            this.expression.setRoot(
-                parenthesis
-            );
-
-            this.expression.selectedNodeId =
-                slot.id;
-
-            this.saveState();
-            this.update();
-            return;
-        }
-
-        /*
-         * Nó selecionado.
-         */
         const selectedNode =
             this.findNodeById(
                 root,
@@ -324,32 +176,228 @@ export class ExpressionController {
             );
 
         if (
-            selectedNode?.type === NodeTypes.SLOT
+            selectedNode?.type ===
+            NodeTypes.NUMBER
         ) {
-            selectedNode.type =
-                NodeTypes.PARENTHESIS;
-
-            selectedNode.value = null;
-
-            const slot = new MathNode(
-                NodeTypes.SLOT
+            this.expression.setNodeValue(
+                selectedNode.id,
+                `${selectedNode.value}${value}`
             );
 
-            selectedNode.children = [
-                slot
-            ];
+            this.cursorNodeId =
+                selectedNode.id;
 
-            this.expression.selectedNodeId =
-                slot.id;
-
-            this.saveState();
             this.update();
+
             return;
         }
 
         if (
-            selectedNode?.type === NodeTypes.NUMBER ||
-            selectedNode?.type === NodeTypes.PARENTHESIS
+            selectedNode?.type ===
+            NodeTypes.SLOT
+        ) {
+            this.expression.mutate(() => {
+                selectedNode.type =
+                    NodeTypes.NUMBER;
+
+                selectedNode.value =
+                    value;
+
+                selectedNode.children = [];
+            });
+
+            this.cursorNodeId =
+                selectedNode.id;
+
+            this.expression.selectNode(
+                selectedNode.id
+            );
+
+            this.update();
+
+            return;
+        }
+
+        const slot =
+            this.findFirstSlot(root);
+
+        if (slot) {
+            this.expression.mutate(() => {
+                slot.type =
+                    NodeTypes.NUMBER;
+
+                slot.value =
+                    value;
+
+                slot.children = [];
+            });
+
+            this.cursorNodeId =
+                slot.id;
+
+            this.expression.selectNode(
+                slot.id
+            );
+
+            this.update();
+        }
+    }
+
+    inputOperator(operatorType) {
+        const root =
+            this.expression.getRoot();
+
+        if (!root) {
+            return;
+        }
+
+        let selectedNode =
+            this.findNodeById(
+                root,
+                this.expression.selectedNodeId
+            );
+
+        if (!selectedNode) {
+            selectedNode =
+                this.findLastValue(root);
+        }
+
+        if (
+            !selectedNode ||
+            selectedNode.type ===
+            NodeTypes.SLOT ||
+            ![
+                NodeTypes.NUMBER,
+                NodeTypes.VARIABLE,
+                NodeTypes.PARENTHESIS
+            ].includes(selectedNode.type)
+        ) {
+            return;
+        }
+
+        const parentInfo =
+            this.findParent(
+                root,
+                selectedNode
+            );
+
+        const slot =
+            new MathNode(
+                NodeTypes.SLOT
+            );
+
+        const operation =
+            new MathNode(
+                operatorType,
+                {
+                    children: [
+                        selectedNode,
+                        slot
+                    ]
+                }
+            );
+
+        if (!parentInfo) {
+            this.expression.setRoot(
+                operation
+            );
+        } else {
+            this.expression.mutate(() => {
+                parentInfo.parent.setChild(
+                    parentInfo.index,
+                    operation
+                );
+            });
+        }
+
+        this.cursorNodeId =
+            slot.id;
+
+        this.expression.selectNode(
+            slot.id
+        );
+
+        this.update();
+    }
+
+    inputParenthesisOpen() {
+        const root =
+            this.expression.getRoot();
+
+        if (!root) {
+            const slot =
+                new MathNode(
+                    NodeTypes.SLOT
+                );
+
+            const parenthesis =
+                new MathNode(
+                    NodeTypes.PARENTHESIS,
+                    {
+                        children: [slot]
+                    }
+                );
+
+            this.expression.setRoot(
+                parenthesis
+            );
+
+            this.cursorNodeId =
+                slot.id;
+
+            this.expression.selectNode(
+                slot.id
+            );
+
+            this.update();
+
+            return;
+        }
+
+        const selectedNode =
+            this.findNodeById(
+                root,
+                this.expression.selectedNodeId
+            );
+
+        if (
+            selectedNode?.type ===
+            NodeTypes.SLOT
+        ) {
+            const slot =
+                new MathNode(
+                    NodeTypes.SLOT
+                );
+
+            this.expression.mutate(() => {
+                selectedNode.type =
+                    NodeTypes.PARENTHESIS;
+
+                selectedNode.value =
+                    null;
+
+                selectedNode.children = [
+                    slot
+                ];
+            });
+
+            this.cursorNodeId =
+                slot.id;
+
+            this.expression.selectNode(
+                slot.id
+            );
+
+            this.update();
+
+            return;
+        }
+
+        if (
+            selectedNode?.type ===
+            NodeTypes.NUMBER ||
+            selectedNode?.type ===
+            NodeTypes.PARENTHESIS
         ) {
             const parentInfo =
                 this.findParent(
@@ -357,107 +405,117 @@ export class ExpressionController {
                     selectedNode
                 );
 
-            const parenthesis =
-                new MathNode(
-                    NodeTypes.PARENTHESIS
-                );
-
             const slot =
                 new MathNode(
                     NodeTypes.SLOT
                 );
 
-            parenthesis.addChild(slot);
+            const parenthesis =
+                new MathNode(
+                    NodeTypes.PARENTHESIS,
+                    {
+                        children: [slot]
+                    }
+                );
 
             const multiplication =
                 new MathNode(
-                    NodeTypes.MULTIPLY
+                    NodeTypes.MULTIPLY,
+                    {
+                        children: [
+                            selectedNode,
+                            parenthesis
+                        ]
+                    }
                 );
-
-            multiplication.addChild(
-                selectedNode
-            );
-
-            multiplication.addChild(
-                parenthesis
-            );
 
             if (!parentInfo) {
                 this.expression.setRoot(
                     multiplication
                 );
             } else {
-                parentInfo.parent.setChild(
-                    parentInfo.index,
-                    multiplication
-                );
+                this.expression.mutate(() => {
+                    parentInfo.parent.setChild(
+                        parentInfo.index,
+                        multiplication
+                    );
+                });
             }
 
-            this.expression.selectedNodeId =
+            this.cursorNodeId =
                 slot.id;
 
-            this.saveState();
+            this.expression.selectNode(
+                slot.id
+            );
+
             this.update();
+
             return;
         }
 
-        /*
-         * Fallback.
-         */
-        const slot = this.findFirstSlot(root);
+        const slot =
+            this.findFirstSlot(root);
 
         if (slot) {
-            slot.type =
-                NodeTypes.PARENTHESIS;
-
-            slot.value = null;
-
             const child =
                 new MathNode(
                     NodeTypes.SLOT
                 );
 
-            slot.children = [
-                child
-            ];
+            this.expression.mutate(() => {
+                slot.type =
+                    NodeTypes.PARENTHESIS;
 
-            this.expression.selectedNodeId =
+                slot.value =
+                    null;
+
+                slot.children = [
+                    child
+                ];
+            });
+
+            this.cursorNodeId =
                 child.id;
 
-            this.saveState();
+            this.expression.selectNode(
+                child.id
+            );
+
             this.update();
         }
     }
 
     inputParenthesisClose() {
-        const root = this.expression.getRoot();
+        const root =
+            this.expression.getRoot();
 
         if (!root) {
             return;
         }
 
         const openParenthesis =
-            this.findOpenParenthesis(root);
-
-        if (!openParenthesis) {
-            return;
-        }
-
-        const slot =
-            this.findFirstSlot(
-                openParenthesis
+            this.findOpenParenthesis(
+                root
             );
 
-        if (slot) {
+        if (
+            !openParenthesis ||
+            this.findFirstSlot(
+                openParenthesis
+            )
+        ) {
             return;
         }
 
-        this.expression.selectedNodeId =
+        this.cursorNodeId =
             openParenthesis.id;
 
-        this.renderer.render(
-            this.expression
+        this.expression.selectNode(
+            openParenthesis.id
         );
+
+        this.update();
     }
 
     findOpenParenthesis(node) {
@@ -465,45 +523,56 @@ export class ExpressionController {
             return null;
         }
 
-        for (let i = node.children.length - 1; i >= 0; i--) {
-            const result = this.findOpenParenthesis(
-                node.children[i]
-            );
+        for (
+            let i = node.children.length - 1;
+            i >= 0;
+            i--
+        ) {
+            const result =
+                this.findOpenParenthesis(
+                    node.children[i]
+                );
 
             if (result) {
                 return result;
             }
         }
 
-        if (node.type === NodeTypes.PARENTHESIS) {
-
-            if (this.findFirstSlot(node)) {
-                return node;
-            }
+        if (
+            node.type ===
+            NodeTypes.PARENTHESIS &&
+            this.findFirstSlot(node)
+        ) {
+            return node;
         }
 
         return null;
     }
 
     inputDecimal() {
-        const root = this.expression.getRoot();
+        const root =
+            this.expression.getRoot();
 
-        /*
-         * Expressão vazia.
-         */
         if (!root) {
-            const node = new MathNode(
-                NodeTypes.NUMBER,
-                {
-                    value: "0."
-                }
-            );
+            const node =
+                new MathNode(
+                    NodeTypes.NUMBER,
+                    {
+                        value: "0."
+                    }
+                );
 
             this.expression.setRoot(node);
-            this.expression.selectedNodeId = node.id;
 
-            this.saveState();
+            this.cursorNodeId =
+                node.id;
+
+            this.expression.selectNode(
+                node.id
+            );
+
             this.update();
+
             return;
         }
 
@@ -513,66 +582,85 @@ export class ExpressionController {
                 this.expression.selectedNodeId
             );
 
-        /*
-         * Número selecionado.
-         */
         if (
-            selectedNode?.type === NodeTypes.NUMBER
+            selectedNode?.type ===
+            NodeTypes.NUMBER
         ) {
-            const value =
-                String(selectedNode.value);
-
-            if (value.includes(".")) {
+            if (
+                String(
+                    selectedNode.value
+                ).includes(".")
+            ) {
                 return;
             }
 
-            selectedNode.value += ".";
+            this.expression.setNodeValue(
+                selectedNode.id,
+                `${selectedNode.value}.`
+            );
 
-            this.saveState();
-            this.update();
-            return;
-        }
-
-        /*
-         * SLOT selecionado.
-         */
-        if (
-            selectedNode?.type === NodeTypes.SLOT
-        ) {
-            selectedNode.type =
-                NodeTypes.NUMBER;
-
-            selectedNode.value = "0.";
-            selectedNode.children = [];
-
-            this.expression.selectedNodeId =
+            this.cursorNodeId =
                 selectedNode.id;
 
-            this.saveState();
             this.update();
+
             return;
         }
 
-        /*
-         * Fallback.
-         */
-        const slot = this.findFirstSlot(root);
+        if (
+            selectedNode?.type ===
+            NodeTypes.SLOT
+        ) {
+            this.expression.mutate(() => {
+                selectedNode.type =
+                    NodeTypes.NUMBER;
+
+                selectedNode.value =
+                    "0.";
+
+                selectedNode.children = [];
+            });
+
+            this.cursorNodeId =
+                selectedNode.id;
+
+            this.expression.selectNode(
+                selectedNode.id
+            );
+
+            this.update();
+
+            return;
+        }
+
+        const slot =
+            this.findFirstSlot(root);
 
         if (slot) {
-            slot.type = NodeTypes.NUMBER;
-            slot.value = "0.";
-            slot.children = [];
+            this.expression.mutate(() => {
+                slot.type =
+                    NodeTypes.NUMBER;
 
-            this.expression.selectedNodeId =
+                slot.value =
+                    "0.";
+
+                slot.children = [];
+            });
+
+            this.cursorNodeId =
                 slot.id;
 
-            this.saveState();
+            this.expression.selectNode(
+                slot.id
+            );
+
             this.update();
         }
     }
 
     backspace() {
-        const root = this.expression.getRoot();
+        const root =
+            this.expression.getRoot();
 
         if (!root) {
             return;
@@ -589,123 +677,165 @@ export class ExpressionController {
         }
 
         if (
-            selectedNode.type === NodeTypes.NUMBER
+            selectedNode.type ===
+            NodeTypes.NUMBER
         ) {
             const value =
-                String(selectedNode.value);
+                String(
+                    selectedNode.value
+                );
 
             if (value.length > 1) {
-                selectedNode.value =
-                    value.slice(0, -1);
+                this.expression.setNodeValue(
+                    selectedNode.id,
+                    value.slice(0, -1)
+                );
 
-                this.saveState();
+                this.cursorNodeId =
+                    selectedNode.id;
+
                 this.update();
+
                 return;
             }
 
-            selectedNode.type =
-                NodeTypes.SLOT;
+            this.expression.mutate(() => {
+                selectedNode.type =
+                    NodeTypes.SLOT;
 
-            selectedNode.value = null;
-            selectedNode.children = [];
+                selectedNode.value =
+                    null;
 
-            this.saveState();
+                selectedNode.children = [];
+            });
+
+            this.cursorNodeId =
+                selectedNode.id;
+
+            this.expression.selectNode(
+                selectedNode.id
+            );
+
             this.update();
+
             return;
         }
 
         if (
-            selectedNode.type === NodeTypes.SLOT
+            selectedNode.type !==
+            NodeTypes.SLOT
         ) {
-            const slotInfo =
-                this.findFirstSlotWithParent(
-                    root
-                );
-
-            if (
-                slotInfo?.slot !== selectedNode ||
-                !slotInfo.parent
-            ) {
-                return;
-            }
-
-            const parent =
-                slotInfo.parent;
-
-            if (
-                parent.children.length === 2 &&
-                parent.getChild(1) === selectedNode
-            ) {
-                const left =
-                    parent.getChild(0);
-
-                const parentInfo =
-                    this.findParent(
-                        root,
-                        parent
-                    );
-
-                if (!parentInfo) {
-                    this.expression.setRoot(
-                        left
-                    );
-                } else {
-                    parentInfo.parent.setChild(
-                        parentInfo.index,
-                        left
-                    );
-                }
-
-                this.expression.selectedNodeId =
-                    left.id;
-
-                this.saveState();
-                this.update();
-            }
+            return;
         }
+
+        const parentInfo =
+            this.findParent(
+                root,
+                selectedNode
+            );
+
+        if (!parentInfo?.parent) {
+            return;
+        }
+
+        const parent =
+            parentInfo.parent;
+
+        if (
+            parent.children.length !== 2 ||
+            parent.getChild(1) !== selectedNode
+        ) {
+            return;
+        }
+
+        const left =
+            parent.getChild(0);
+
+        const grandParentInfo =
+            this.findParent(
+                root,
+                parent
+            );
+
+        if (!grandParentInfo) {
+            this.expression.setRoot(
+                left
+            );
+        } else {
+            this.expression.mutate(() => {
+                grandParentInfo.parent.setChild(
+                    grandParentInfo.index,
+                    left
+                );
+            });
+        }
+
+        this.cursorNodeId =
+            left.id;
+
+        this.expression.selectNode(
+            left.id
+        );
+
+        this.update();
     }
 
-    moveSelection(direction) {
-        const root = this.expression.getRoot();
+    moveCursor(direction) {
+        const root =
+            this.expression.getRoot();
 
         if (!root) {
             return;
         }
 
-        const nodes = this.getNavigableNodes(root);
+        const nodes =
+            this.getCursorNodes(root);
 
-        if (nodes.length === 0) {
+        if (!nodes.length) {
             return;
         }
 
-        let currentIndex = nodes.findIndex(
-            node => node.id === this.expression.selectedNodeId
-        );
+        let currentIndex =
+            nodes.findIndex(
+                node =>
+                    node.id ===
+                    this.cursorNodeId
+            );
 
         if (currentIndex === -1) {
-            currentIndex = direction > 0
-                ? 0
-                : nodes.length - 1;
+            currentIndex =
+                direction > 0
+                    ? 0
+                    : nodes.length - 1;
         } else {
             currentIndex += direction;
         }
 
-        currentIndex = Math.max(
-            0,
-            Math.min(
-                currentIndex,
-                nodes.length - 1
-            )
+        currentIndex =
+            Math.max(
+                0,
+                Math.min(
+                    currentIndex,
+                    nodes.length - 1
+                )
+            );
+
+        const node =
+            nodes[currentIndex];
+
+        this.cursorNodeId =
+            node.id;
+
+        this.expression.selectNode(
+            node.id
         );
 
-        const node = nodes[currentIndex];
-
-        this.expression.selectedNodeId = node.id;
-
-        this.renderer.render(this.expression);
+        this.renderer.render(
+            this.expression
+        );
     }
 
-    getNavigableNodes(node) {
+    getCursorNodes(node) {
         if (!node) {
             return [];
         }
@@ -718,15 +848,39 @@ export class ExpressionController {
             }
 
             if (
-                current.type === NodeTypes.NUMBER ||
-                current.type === NodeTypes.VARIABLE ||
-                current.type === NodeTypes.SLOT
+                current.type ===
+                NodeTypes.NUMBER ||
+                current.type ===
+                NodeTypes.VARIABLE ||
+                current.type ===
+                NodeTypes.SLOT
             ) {
                 nodes.push(current);
                 return;
             }
 
-            for (const child of current.children) {
+            if (
+                current.type ===
+                NodeTypes.ADD ||
+                current.type ===
+                NodeTypes.SUBTRACT ||
+                current.type ===
+                NodeTypes.MULTIPLY ||
+                current.type ===
+                NodeTypes.DIVIDE ||
+                current.type ===
+                NodeTypes.POWER ||
+                current.type ===
+                NodeTypes.FRACTION ||
+                current.type ===
+                NodeTypes.PARENTHESIS
+            ) {
+                nodes.push(current);
+            }
+
+            for (
+                const child of current.children
+            ) {
                 visit(child);
             }
         };
@@ -736,19 +890,38 @@ export class ExpressionController {
         return nodes;
     }
 
+    selectParentNode() {
+        const selected = this.expression.getSelectedNode();
+        if (!selected) return;
+        const parent = this.expression.findParent(selected.id);
+        if (parent) this.selectNode(parent.id);
+    }
+
+    selectFirstChildNode() {
+        const selected = this.expression.getSelectedNode();
+        if (!selected || !selected.children.length) return;
+        this.selectNode(selected.children[0].id);
+    }
 
     selectNode(nodeId) {
-        this.expression.selectedNodeId = nodeId;
+        this.cursorNodeId =
+            nodeId;
 
-        this.renderer.render(this.expression);
+        this.expression.selectNode(
+            nodeId
+        );
 
         this.update();
     }
 
     clearSelection() {
-        this.expression.selectedNodeId = null;
+        this.cursorNodeId = null;
 
-        this.renderer.render(this.expression);
+        this.expression.clearSelection();
+
+        this.renderer.render(
+            this.expression
+        );
     }
 
     findNodeById(node, id) {
@@ -761,7 +934,11 @@ export class ExpressionController {
         }
 
         for (const child of node.children) {
-            const result = this.findNodeById(child, id);
+            const result =
+                this.findNodeById(
+                    child,
+                    id
+                );
 
             if (result) {
                 return result;
@@ -776,38 +953,20 @@ export class ExpressionController {
             return null;
         }
 
-        if (node.type === NodeTypes.SLOT) {
+        if (
+            node.type ===
+            NodeTypes.SLOT
+        ) {
             return node;
         }
 
-        for (const child of node.children) {
-            const result = this.findFirstSlot(child);
-
-            if (result) {
-                return result;
-            }
-        }
-
-        return null;
-    }
-
-    findFirstSlotWithParent(node, parent = null) {
-        if (!node) {
-            return null;
-        }
-
-        if (node.type === NodeTypes.SLOT) {
-            return {
-                slot: node,
-                parent
-            };
-        }
-
-        for (const child of node.children) {
-            const result = this.findFirstSlotWithParent(
-                child,
-                node
-            );
+        for (
+            const child of node.children
+        ) {
+            const result =
+                this.findFirstSlot(
+                    child
+                );
 
             if (result) {
                 return result;
@@ -838,8 +997,12 @@ export class ExpressionController {
         }
 
         if (
-            node.type === NodeTypes.NUMBER ||
-            node.type === NodeTypes.PARENTHESIS
+            node.type ===
+            NodeTypes.NUMBER ||
+            node.type ===
+            NodeTypes.VARIABLE ||
+            node.type ===
+            NodeTypes.PARENTHESIS
         ) {
             return node;
         }
@@ -847,7 +1010,11 @@ export class ExpressionController {
         return null;
     }
 
-    findParent(root, target, parent = null) {
+    findParent(
+        root,
+        target,
+        parent = null
+    ) {
         if (!root) {
             return null;
         }
@@ -856,8 +1023,13 @@ export class ExpressionController {
             return parent;
         }
 
-        for (let i = 0; i < root.children.length; i++) {
-            const child = root.children[i];
+        for (
+            let i = 0;
+            i < root.children.length;
+            i++
+        ) {
+            const child =
+                root.children[i];
 
             if (child === target) {
                 return {
@@ -866,11 +1038,12 @@ export class ExpressionController {
                 };
             }
 
-            const result = this.findParent(
-                child,
-                target,
-                root
-            );
+            const result =
+                this.findParent(
+                    child,
+                    target,
+                    root
+                );
 
             if (result) {
                 return result;
@@ -880,16 +1053,15 @@ export class ExpressionController {
         return null;
     }
 
-    saveState() {
-        this.expression.saveHistory();
-    }
-
     undo() {
         if (!this.expression.undo()) {
             return false;
         }
 
+        this.cursorNodeId = null;
+
         this.update();
+
         return true;
     }
 
@@ -898,37 +1070,22 @@ export class ExpressionController {
             return false;
         }
 
+        this.cursorNodeId = null;
+
         this.update();
+
         return true;
     }
 
-    clear() {
-        this.expression.clear();
-        this.update();
-    }
-
-    cloneTree(node) {
-        if (!node) {
-            return null;
-        }
-
-        const clone = new MathNode(node.type, {
-            id: node.id,
-            value: node.value
-        });
-
-        clone.children = node.children.map(
-            child => this.cloneTree(child)
+    update() {
+        this.renderer.render(
+            this.expression
         );
 
-        return clone;
-    }
-
-    update() {
-        this.renderer.render(this.expression);
-
         if (this.onChange) {
-            this.onChange(this.expression);
+            this.onChange(
+                this.expression
+            );
         }
     }
 }

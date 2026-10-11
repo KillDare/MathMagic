@@ -235,3 +235,39 @@
     outline: 2px solid var(--color-primary);
     outline-offset: 3px;
 }
+
+
+/* =========================================================
+   FRAÇÃO
+   ========================================================= */
+
+.math-fraction {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: stretch;
+    vertical-align: middle;
+    gap: 3px;
+    min-width: 54px;
+    padding: 5px 7px;
+    font-size: 24px;
+}
+
+.math-fraction__numerator,
+.math-fraction__denominator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 5px;
+}
+
+.math-fraction__bar {
+    height: 2px;
+    min-width: 100%;
+    background: currentColor;
+    border-radius: 2px;
+}
+
+.math-fraction[data-selected="true"] {
+    outline-offset: 2px;
+}

@@ -18,6 +18,8 @@ export const NodeTypes = {
 
     POWER: "power",
 
+    FRACTION: "fraction",
+
     PARENTHESIS: "parenthesis",
 
     SLOT: "slot"
@@ -40,6 +42,9 @@ export function getPrecedence(type) {
 
         case NodeTypes.POWER:
             return 3;
+
+        case NodeTypes.FRACTION:
+            return 4;
 
 
         case NodeTypes.NUMBER:

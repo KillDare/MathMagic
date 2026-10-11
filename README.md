@@ -121,6 +121,10 @@ O histórico mantém os estados necessários para navegar novamente entre as alt
 
 ---
 
+### ➗ Frações
+
+O editor permite inserir frações como estruturas matemáticas próprias, com numerador e denominador independentes. Ambos aceitam expressões completas, e a navegação contextual permite selecionar o nó da fração, entrar nos campos e percorrer os elementos internos. Frações completas também são avaliadas pelo motor matemático e aparecem no passo a passo da resolução.
+
 ### 🧩 Slots
 
 Os `SLOT`s representam posições disponíveis dentro da expressão.
@@ -210,6 +214,7 @@ NodeTypes.SUBTRACT
 NodeTypes.MULTIPLY
 NodeTypes.DIVIDE
 NodeTypes.POWER
+NodeTypes.FRACTION
 NodeTypes.PARENTHESIS
 ```
 
@@ -314,6 +319,9 @@ Algumas das próximas etapas planejadas incluem:
 * [ ] Step by Step da resolução
 * [ ] Visualização das etapas de cálculo
 * [ ] Melhorias na experiência de edição
+* [x] Frações com numerador e denominador editáveis
+* [x] Avaliação de frações no motor matemático
+* [ ] Raízes quadradas e outras raízes
 * [ ] Novos tipos de operações matemáticas
 
 O roadmap pode mudar conforme o desenvolvimento do projeto evoluir.
@@ -374,19 +382,11 @@ https://github.com/KillDare
 
 Ainda não definida.
 
-## Testes e validação do núcleo
 
-O projeto inclui testes automatizados com o runner nativo do Node.js. Com Node.js 18 ou superior, execute na raiz do projeto:
+## 🧪 Testes
+
+O projeto inclui testes automatizados executáveis com Node.js (versão 18 ou superior):
 
 ```bash
 npm test
 ```
-
-Os testes cobrem operações básicas, estrutura válida/inválida da árvore, divisão por zero e o histórico compartilhado entre `Expression` e `ExpressionController`.
-
-### Decisões de estabilidade (0.1.1)
-
-- `Expression` é a fonte única de verdade para o histórico de edição.
-- Estados idênticos não são adicionados repetidamente ao histórico.
-- O histórico é limitado a 100 estados e uma nova edição após Undo elimina o ramo de Redo.
-- `MathEngine.isComplete()` valida a aridade das operações, folhas numéricas, parênteses e nós não suportados antes de permitir a resolução.

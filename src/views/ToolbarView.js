@@ -57,6 +57,11 @@ export class ToolbarView {
                 return;
             }
 
+            if (operation === "fraction") {
+                this.controller.handleFraction();
+                return;
+            }
+
             this.controller.handleOperation(operation);
         }
     }

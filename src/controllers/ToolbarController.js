@@ -263,6 +263,37 @@ export class ToolbarController {
 
 
     // =========================================================
+    // Fração
+    // =========================================================
+
+    handleFraction() {
+        const selected = this.expression.getSelectedNode();
+        const fraction = new MathNode(NodeTypes.FRACTION, {
+            children: [
+                selected && selected.type !== NodeTypes.SLOT
+                    ? selected
+                    : new MathNode(NodeTypes.SLOT),
+                new MathNode(NodeTypes.SLOT)
+            ]
+        });
+
+        if (!selected) {
+            this.expression.setRoot(fraction);
+            this.expression.selectNode(fraction.getChild(0).id);
+        } else if (selected.type === NodeTypes.SLOT) {
+            this.expression.replaceNode(selected.id, fraction);
+            this.expression.selectNode(fraction.getChild(0).id);
+        } else {
+            this.expression.replaceNode(selected.id, fraction);
+            this.expression.selectNode(fraction.getChild(1).id);
+        }
+
+        this.render();
+        return fraction;
+    }
+
+
+    // =========================================================
     // Parênteses
     // =========================================================
 

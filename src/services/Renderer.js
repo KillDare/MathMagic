@@ -115,6 +115,9 @@ export class Renderer {
             case NodeTypes.POWER:
                 return this.renderPower(node);
 
+            case NodeTypes.FRACTION:
+                return this.renderFraction(node);
+
 
             case NodeTypes.PARENTHESIS:
                 return this.renderParenthesis(node);
@@ -282,6 +285,36 @@ export class Renderer {
         element.appendChild(exponentContainer);
 
 
+        return element;
+    }
+
+
+    // =========================================================
+    // Fração
+    // =========================================================
+
+    renderFraction(node) {
+        const element = this.createElement(
+            "div",
+            "math-node math-fraction"
+        );
+        this.setNodeData(element, node);
+
+        const numerator = this.createElement(
+            "div",
+            "math-fraction__numerator"
+        );
+        numerator.appendChild(this.renderNode(node.getChild(0), node, 0));
+
+        const denominator = this.createElement(
+            "div",
+            "math-fraction__denominator"
+        );
+        denominator.appendChild(this.renderNode(node.getChild(1), node, 1));
+
+        element.appendChild(numerator);
+        element.appendChild(this.createElement("div", "math-fraction__bar"));
+        element.appendChild(denominator);
         return element;
     }
 

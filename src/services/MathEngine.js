@@ -101,6 +101,9 @@ export class MathEngine {
 
                 return this.evaluateDivision(node);
 
+            case NodeTypes.FRACTION:
+                return this.evaluateFraction(node);
+
 
             case NodeTypes.POWER:
 
@@ -186,6 +189,21 @@ export class MathEngine {
         );
     }
 
+
+    // =========================================================
+    // Fração
+    // =========================================================
+
+    evaluateFraction(node) {
+        if (!node || node.children.length !== 2) {
+            throw new Error("A fração precisa de numerador e denominador.");
+        }
+        const denominator = this.evaluate(node.getChild(1));
+        if (denominator === 0) {
+            throw new Error("O denominador de uma fração não pode ser zero.");
+        }
+        return this.evaluate(node.getChild(0)) / denominator;
+    }
 
     // =========================================================
     // Geração dos passos
@@ -607,6 +625,11 @@ export class MathEngine {
                     node.getChild(0)
                 );
 
+            case NodeTypes.FRACTION:
+                return this.canEvaluate(node.getChild(0)) &&
+                    this.canEvaluate(node.getChild(1)) &&
+                    this.evaluate(node.getChild(1)) !== 0;
+
 
             default:
 
@@ -627,6 +650,7 @@ export class MathEngine {
 
 
         return (
+            node.type === NodeTypes.FRACTION ||
             node.type === NodeTypes.ADD ||
             node.type === NodeTypes.SUBTRACT ||
             node.type === NodeTypes.MULTIPLY ||
@@ -688,6 +712,9 @@ export class MathEngine {
             case NodeTypes.POWER:
 
                 return `Calculamos ${left}^${right} = ${resultText}`;
+
+            case NodeTypes.FRACTION:
+                return `Calculamos a fração ${left} / ${right} = ${resultText}`;
 
 
             default:
@@ -774,6 +801,9 @@ export class MathEngine {
                 )}^${this.nodeToText(
                     node.getChild(1)
                 )}`;
+
+            case NodeTypes.FRACTION:
+                return `(${this.nodeToText(node.getChild(0))}) / (${this.nodeToText(node.getChild(1))})`;
 
 
             case NodeTypes.SLOT:
