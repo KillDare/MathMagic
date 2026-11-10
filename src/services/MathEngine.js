@@ -42,6 +42,7 @@ export class MathEngine {
             NodeTypes.SUBTRACT,
             NodeTypes.MULTIPLY,
             NodeTypes.DIVIDE,
+            NodeTypes.FRACTION,
             NodeTypes.POWER
         ]);
 
