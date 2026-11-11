@@ -77,15 +77,15 @@ test("histórico é limitado a 100 estados", () => {
 
 test("ExpressionController grava no histórico central do Expression", () => {
     globalThis.document = {
-        addEventListener() {}
+        addEventListener() { }
     };
 
     const container = {
-        addEventListener() {}
+        addEventListener() { }
     };
 
     const renderer = {
-        render() {}
+        render() { }
     };
 
     const expression = new Expression();
@@ -111,12 +111,12 @@ test("ExpressionController grava no histórico central do Expression", () => {
 });
 
 test("operações do teclado também entram no histórico central", () => {
-    const container = { addEventListener() {} };
-    const renderer = { render() {} };
+    const container = { addEventListener() { } };
+    const renderer = { render() { } };
     const expression = new Expression();
 
     const previousDocument = globalThis.document;
-    globalThis.document = { addEventListener() {} };
+    globalThis.document = { addEventListener() { } };
 
     try {
         const controller = new ExpressionController(
@@ -213,8 +213,8 @@ test("navegação contextual permite subir ao nó da fração e descer ao numera
 
     const controller = new ExpressionController(
         expression,
-        { render() {} },
-        { addEventListener() {} }
+        { render() { } },
+        { addEventListener() { } }
     );
 
     controller.selectNode(numerator.id);
@@ -319,4 +319,114 @@ test("negação aceita expressões como operando", () => {
     const steps = engine.generateSteps(negate);
 
     assert.equal(steps.at(-1).node.value, "-5");
+});
+
+
+test("radiciação calcula raiz quadrada corretamente", () => {
+
+    const engine = new MathEngine();
+
+    const radical = new MathNode(
+        NodeTypes.RADICAL,
+        {
+            children: [number("25")]
+        }
+    );
+
+    assert.equal(engine.isComplete(radical), true);
+
+    assert.equal(engine.evaluate(radical), 5);
+});
+
+
+test("radiciação aceita expressões como radicando", () => {
+
+    const engine = new MathEngine();
+
+    const radical = new MathNode(
+        NodeTypes.RADICAL,
+        {
+            children: [
+                new MathNode(NodeTypes.ADD, {
+                    children: [
+                        number("2"),
+                        number("7")
+                    ]
+                })
+            ]
+        }
+    );
+
+    assert.equal(engine.evaluate(radical), 3);
+});
+
+
+test("radiciação gera resolução passo a passo", () => {
+
+    const engine = new MathEngine();
+
+    const radical = new MathNode(
+        NodeTypes.RADICAL,
+        {
+            children: [number("36")]
+        }
+    );
+
+    const steps = engine.generateSteps(radical);
+
+    assert.equal(steps.length, 2);
+
+    assert.match(
+        steps[1].description,
+        /raiz quadrada de 36 = 6/
+    );
+
+    assert.equal(
+        steps.at(-1).node.value,
+        "6"
+    );
+});
+
+
+test("radiciação rejeita radicando negativo", () => {
+
+    const engine = new MathEngine();
+
+    const radical = new MathNode(
+        NodeTypes.RADICAL,
+        {
+            children: [
+                new MathNode(NodeTypes.NEGATE, {
+                    children: [number("9")]
+                })
+            ]
+        }
+    );
+
+    assert.throws(
+        () => engine.evaluate(radical),
+        /raiz quadrada real/
+    );
+});
+
+
+test("radicais incompletos não podem ser resolvidos", () => {
+
+    const engine = new MathEngine();
+
+    const radical = new MathNode(
+        NodeTypes.RADICAL,
+        {
+            children: [
+                new MathNode(NodeTypes.SLOT)
+            ]
+        }
+    );
+
+    assert.equal(engine.isComplete(radical), false);
+
+    assert.deepEqual(
+        engine.generateSteps(radical),
+        []
+    );
 });

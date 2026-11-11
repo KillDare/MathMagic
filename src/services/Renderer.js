@@ -82,29 +82,26 @@ export class Renderer {
             case NodeTypes.NUMBER:
                 return this.renderNumber(node);
 
-
             case NodeTypes.VARIABLE:
                 return this.renderVariable(node);
-
 
             case NodeTypes.ADD:
                 return this.renderBinaryOperation(node, "+");
 
-
             case NodeTypes.SUBTRACT:
                 return this.renderBinaryOperation(node, "−");
-
 
             case NodeTypes.MULTIPLY:
                 return this.renderBinaryOperation(node, "×");
 
-
             case NodeTypes.DIVIDE:
                 return this.renderBinaryOperation(node, "÷");
 
-
             case NodeTypes.POWER:
                 return this.renderPower(node);
+
+            case NodeTypes.RADICAL:
+                return this.renderRadical(node);
 
             case NodeTypes.FRACTION:
                 return this.renderFraction(node);
@@ -297,6 +294,45 @@ export class Renderer {
 
         element.appendChild(operator);
         element.appendChild(child);
+
+        return element;
+    }
+
+    // =========================================================
+    // Radical
+    // =========================================================
+
+    renderRadical(node) {
+
+        const element = this.createElement(
+            "div",
+            "math-node math-radical"
+        );
+
+        this.setNodeData(element, node);
+
+        const symbol = this.createElement(
+            "span",
+            "math-radical__symbol"
+        );
+
+        symbol.textContent = "√";
+
+        const radicand = this.createElement(
+            "div",
+            "math-radical__radicand"
+        );
+
+        radicand.appendChild(
+            this.renderNode(
+                node.getChild(0),
+                node,
+                0
+            )
+        );
+
+        element.appendChild(symbol);
+        element.appendChild(radicand);
 
         return element;
     }

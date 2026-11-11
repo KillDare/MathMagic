@@ -225,6 +225,7 @@
 
     transform: scale(1.04);
 }
+
 /* =========================================================
    SELEÇÃO
    ========================================================= */
@@ -269,5 +270,54 @@
 }
 
 .math-fraction[data-selected="true"] {
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   RADICAL
+   ========================================================= */
+
+.math-radical {
+    display: inline-flex;
+
+    align-items: stretch;
+
+    gap: 2px;
+
+    padding: 4px 5px;
+
+    vertical-align: middle;
+}
+
+
+.math-radical__symbol {
+    display: flex;
+
+    align-items: center;
+
+    color: var(--color-primary);
+
+    font-size: 42px;
+
+    line-height: 1;
+}
+
+
+.math-radical__radicand {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-width: 38px;
+
+    padding: 5px 8px 2px;
+
+    border-top: 2px solid var(--color-primary);
+}
+
+
+.math-radical[data-selected="true"] {
     outline-offset: 2px;
 }

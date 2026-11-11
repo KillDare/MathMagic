@@ -37,7 +37,9 @@ export class MathEngine {
             return node.children.length === 1 && this.isComplete(node.children[0]);
         }
 
-        if (node.type === NodeTypes.NEGATE) {
+        if (node.type === NodeTypes.NEGATE ||
+            node.type === NodeTypes.RADICAL
+        ) {
             return node.children.length === 1 && this.isComplete(node.getChild(0));
         }
 
@@ -115,6 +117,10 @@ export class MathEngine {
                     this.evaluate(node.getChild(0)),
                     this.evaluate(node.getChild(1))
                 );
+
+            case NodeTypes.RADICAL:
+
+                return this.evaluateRadical(node);
 
             case NodeTypes.NEGATE:
 
@@ -196,7 +202,6 @@ export class MathEngine {
         );
     }
 
-
     // =========================================================
     // Fração
     // =========================================================
@@ -210,6 +215,31 @@ export class MathEngine {
             throw new Error("O denominador de uma fração não pode ser zero.");
         }
         return this.evaluate(node.getChild(0)) / denominator;
+    }
+
+    // =========================================================
+    // Radiciação
+    // =========================================================
+
+    evaluateRadical(node) {
+
+        if (!node || node.children.length !== 1) {
+            throw new Error(
+                "A raiz precisa possuir um radicando."
+            );
+        }
+
+        const radicand = this.evaluate(
+            node.getChild(0)
+        );
+
+        if (radicand < 0) {
+            throw new Error(
+                "Não existe raiz quadrada real de um número negativo."
+            );
+        }
+
+        return Math.sqrt(radicand);
     }
 
     // =========================================================
@@ -387,8 +417,7 @@ export class MathEngine {
         // -----------------------------------------------------
 
         if (
-            node.type ===
-            NodeTypes.PARENTHESIS
+            node.type === NodeTypes.PARENTHESIS
         ) {
 
             const child =
@@ -431,11 +460,10 @@ export class MathEngine {
             return null;
         }
 
-        // -----------------------------------------------------
-        // Negação
-        // -----------------------------------------------------
-
-        if (node.type === NodeTypes.NEGATE) {
+        if (
+            node.type === NodeTypes.NEGATE ||
+            node.type === NodeTypes.RADICAL
+        ) {
 
             const child = node.getChild(0);
 
@@ -462,7 +490,9 @@ export class MathEngine {
                     childIndex,
 
                     description:
-                        `Aplicamos a negação: -(${this.nodeToText(child)}) = ${this.formatNumber(result)}`
+                        node.type === NodeTypes.RADICAL
+                            ? `Calculamos a raiz quadrada de ${this.nodeToText(child)} = ${this.formatNumber(result)}`
+                            : `Aplicamos a negação: -(${this.nodeToText(child)}) = ${this.formatNumber(result)}`
                 };
             }
 
@@ -619,6 +649,22 @@ export class MathEngine {
         }
 
         // -----------------------------------------------------
+        // Radiciação
+        // -----------------------------------------------------
+
+        if (node.type === NodeTypes.RADICAL) {
+
+            return new MathNode(
+                NodeTypes.NUMBER,
+                {
+                    value: this.formatNumber(
+                        this.evaluate(node)
+                    )
+                }
+            );
+        }
+
+        // -----------------------------------------------------
         // Parênteses
         // -----------------------------------------------------
 
@@ -719,10 +765,15 @@ export class MathEngine {
                 );
 
             case NodeTypes.FRACTION:
+
                 return this.canEvaluate(node.getChild(0)) &&
                     this.canEvaluate(node.getChild(1)) &&
                     this.evaluate(node.getChild(1)) !== 0;
 
+            case NodeTypes.RADICAL:
+
+                return this.canEvaluate(node.getChild(0)) &&
+                    this.evaluate(node) >= 0;
 
             default:
 
@@ -899,6 +950,12 @@ export class MathEngine {
                 )}^${this.nodeToText(
                     node.getChild(1)
                 )}`;
+
+            case NodeTypes.RADICAL:
+
+                return `√(${this.nodeToText(
+                    node.getChild(0)
+                )})`;
 
             case NodeTypes.FRACTION:
                 return `(${this.nodeToText(node.getChild(0))}) / (${this.nodeToText(node.getChild(1))})`;

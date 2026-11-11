@@ -304,6 +304,51 @@ export class ToolbarController {
         return node;
     }
 
+    // =========================================================
+    // Radical
+    // =========================================================
+
+    handleRadical() {
+
+        const selected =
+            this.expression.getSelectedNode();
+
+        const radical = new MathNode(
+            NodeTypes.RADICAL,
+            {
+                children: [
+                    new MathNode(NodeTypes.SLOT)
+                ]
+            }
+        );
+
+        if (!selected) {
+
+            this.expression.setRoot(radical);
+
+        } else if (selected.type === NodeTypes.SLOT) {
+
+            this.expression.replaceNode(
+                selected.id,
+                radical
+            );
+
+        } else {
+
+            this.expression.replaceNode(
+                selected.id,
+                radical
+            );
+        }
+
+        this.expression.selectNode(
+            radical.getChild(0).id
+        );
+
+        this.render();
+
+        return radical;
+    }
 
     // =========================================================
     // Fração

@@ -76,6 +76,7 @@ export class ExpressionValidator {
                     allowSlots
                 );
             case NodeTypes.NEGATE:
+            case NodeTypes.RADICAL:
                 return this.validateUnaryOperation(
                     node,
                     allowSlots

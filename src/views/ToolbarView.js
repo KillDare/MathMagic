@@ -67,6 +67,11 @@ export class ToolbarView {
                 return;
             }
 
+            if (operation === "radical") {
+                this.controller.handleRadical();
+                return;
+            }
+
             this.controller.handleOperation(operation);
         }
     }
