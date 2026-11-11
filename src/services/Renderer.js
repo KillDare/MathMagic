@@ -10,11 +10,6 @@ export class Renderer {
         this.container = container;
     }
 
-
-    // =========================================================
-    // Renderização principal
-    // =========================================================
-
     render(
         expression,
         options = {}
@@ -53,10 +48,6 @@ export class Renderer {
             element
         );
     }
-
-    // =========================================================
-    // Renderiza um MathNode
-    // =========================================================
 
     renderNode(node, parentNode = null, childIndex = -1) {
 
@@ -140,11 +131,6 @@ export class Renderer {
         }
     }
 
-
-    // =========================================================
-    // Número
-    // =========================================================
-
     renderNumber(node) {
 
         const element = this.createElement(
@@ -159,11 +145,6 @@ export class Renderer {
         return element;
     }
 
-
-    // =========================================================
-    // Variável
-    // =========================================================
-
     renderVariable(node) {
 
         const element = this.createElement(
@@ -177,11 +158,6 @@ export class Renderer {
 
         return element;
     }
-
-
-    // =========================================================
-    // Operações binárias
-    // =========================================================
 
     renderBinaryOperation(node, operator) {
 
@@ -405,11 +381,6 @@ export class Renderer {
         this.container.appendChild(element);
     }
 
-
-    // =========================================================
-    // Utilitários
-    // =========================================================
-
     createElement(tagName, className) {
 
         const element = document.createElement(tagName);
@@ -473,36 +444,13 @@ export class Renderer {
         const parentPrecedence =
             getPrecedence(parentNode.type);
 
-
-        // ---------------------------------------------------------
-        // Menor precedência:
-        //
-        // 2 + (3 × 4)
-        //
-        // Não precisa mostrar parênteses.
-        // ---------------------------------------------------------
-
         if (nodePrecedence > parentPrecedence) {
             return false;
         }
 
-
-        // ---------------------------------------------------------
-        // Menor precedência:
-        //
-        // (2 + 3) × 4
-        //
-        // Precisa mostrar parênteses.
-        // ---------------------------------------------------------
-
         if (nodePrecedence < parentPrecedence) {
             return true;
         }
-
-
-        // ---------------------------------------------------------
-        // Mesma precedência
-        // ---------------------------------------------------------
 
         if (
             parentNode.type === NodeTypes.SUBTRACT &&

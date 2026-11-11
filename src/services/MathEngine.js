@@ -402,10 +402,17 @@ export class MathEngine {
             }
 
 
+
             if (
                 child &&
                 child.type ===
-                NodeTypes.NUMBER
+                NodeTypes.NUMBER &&
+
+                !(
+                    parent &&
+                    parent.type === NodeTypes.POWER &&
+                    childIndex === 0
+                )
             ) {
 
                 return {
@@ -420,6 +427,7 @@ export class MathEngine {
                         `Removemos os parênteses: ${this.nodeToText(node)}`
                 };
             }
+
 
 
             return null;
