@@ -138,6 +138,60 @@ export class ToolbarController {
     }
 
 
+    handleNegate() {
+
+        const selected =
+            this.expression.getSelectedNode();
+
+        if (!selected) {
+
+            const slot = new MathNode(
+                NodeTypes.SLOT
+            );
+
+            const negate = new MathNode(
+                NodeTypes.NEGATE,
+                {
+                    children: [slot]
+                }
+            );
+
+            this.expression.setRoot(negate);
+
+            this.expression.selectNode(slot.id);
+
+            this.render();
+
+            return negate;
+        }
+
+        if (selected.type !== NodeTypes.SLOT) {
+            return null;
+        }
+
+        const slot = new MathNode(
+            NodeTypes.SLOT
+        );
+
+        const negate = new MathNode(
+            NodeTypes.NEGATE,
+            {
+                children: [slot]
+            }
+        );
+
+        this.expression.replaceNode(
+            selected.id,
+            negate
+        );
+
+        this.expression.selectNode(slot.id);
+
+        this.render();
+
+        return negate;
+    }
+
     // =========================================================
     // Operações
     // =========================================================
@@ -219,17 +273,6 @@ export class ToolbarController {
 
             return node;
         }
-
-
-        // -----------------------------------------------------
-        // Nó existente:
-        //
-        //     2
-        //
-        // vira:
-        //
-        //     2 + SLOT
-        // -----------------------------------------------------
 
         const node =
             new MathNode(

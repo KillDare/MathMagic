@@ -238,7 +238,7 @@
     border-radius: 8px;
 
     background:
-        var(--color-primary);
+        var(--color-primary-dark);
 
     color:
         var(--color-background);

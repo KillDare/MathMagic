@@ -224,3 +224,99 @@ test("navegação contextual permite subir ao nó da fração e descer ao numera
     controller.selectFirstChildNode();
     assert.equal(expression.getSelectedNode().id, numerator.id);
 });
+
+
+test("negação calcula números negativos corretamente", () => {
+
+    const engine = new MathEngine();
+
+    const negate = new MathNode(
+        NodeTypes.NEGATE,
+        {
+            children: [number("2")]
+        }
+    );
+
+    assert.equal(engine.isComplete(negate), true);
+    assert.equal(engine.evaluate(negate), -2);
+
+    const steps = engine.generateSteps(negate);
+
+    assert.equal(steps.at(-1).node.type, NodeTypes.NUMBER);
+    assert.equal(steps.at(-1).node.value, "-2");
+});
+
+
+test("potenciação distingue base negativa de negação da potência", () => {
+
+    const engine = new MathEngine();
+
+    // (-2)^2
+
+    const negativeBase = new MathNode(
+        NodeTypes.POWER,
+        {
+            children: [
+                new MathNode(NodeTypes.NEGATE, {
+                    children: [number("2")]
+                }),
+                number("2")
+            ]
+        }
+    );
+
+    // -2^2
+
+    const negativePower = new MathNode(
+        NodeTypes.NEGATE,
+        {
+            children: [
+                new MathNode(NodeTypes.POWER, {
+                    children: [
+                        number("2"),
+                        number("2")
+                    ]
+                })
+            ]
+        }
+    );
+
+    assert.equal(engine.evaluate(negativeBase), 4);
+    assert.equal(engine.evaluate(negativePower), -4);
+
+    assert.equal(
+        engine.generateSteps(negativeBase).at(-1).node.value,
+        "4"
+    );
+
+    assert.equal(
+        engine.generateSteps(negativePower).at(-1).node.value,
+        "-4"
+    );
+});
+
+
+test("negação aceita expressões como operando", () => {
+
+    const engine = new MathEngine();
+
+    const negate = new MathNode(
+        NodeTypes.NEGATE,
+        {
+            children: [
+                new MathNode(NodeTypes.ADD, {
+                    children: [
+                        number("2"),
+                        number("3")
+                    ]
+                })
+            ]
+        }
+    );
+
+    assert.equal(engine.evaluate(negate), -5);
+
+    const steps = engine.generateSteps(negate);
+
+    assert.equal(steps.at(-1).node.value, "-5");
+});

@@ -57,6 +57,11 @@ export class ToolbarView {
                 return;
             }
 
+            if (operation === "negate") {
+                this.controller.handleNegate();
+                return;
+            }
+
             if (operation === "fraction") {
                 this.controller.handleFraction();
                 return;

@@ -37,6 +37,10 @@ export class MathEngine {
             return node.children.length === 1 && this.isComplete(node.children[0]);
         }
 
+        if (node.type === NodeTypes.NEGATE) {
+            return node.children.length === 1 && this.isComplete(node.getChild(0));
+        }
+
         const binaryOperators = new Set([
             NodeTypes.ADD,
             NodeTypes.SUBTRACT,
@@ -97,7 +101,6 @@ export class MathEngine {
                     this.evaluate(node.getChild(1))
                 );
 
-
             case NodeTypes.DIVIDE:
 
                 return this.evaluateDivision(node);
@@ -113,6 +116,11 @@ export class MathEngine {
                     this.evaluate(node.getChild(1))
                 );
 
+            case NodeTypes.NEGATE:
+
+                return -this.evaluate(
+                    node.getChild(0)
+                );
 
             case NodeTypes.PARENTHESIS:
 
@@ -120,13 +128,11 @@ export class MathEngine {
                     node.getChild(0)
                 );
 
-
             case NodeTypes.VARIABLE:
 
                 throw new Error(
                     `Não é possível calcular a variável "${node.value}".`
                 );
-
 
             case NodeTypes.SLOT:
 
@@ -282,12 +288,12 @@ export class MathEngine {
             const highlightedNodeId =
                 target.node.id;
 
-
             const replacement =
                 this.reduceNode(
-                    target.node
+                    target.node,
+                    target.parent,
+                    target.childIndex
                 );
-
 
             if (!replacement) {
                 break;
@@ -405,8 +411,7 @@ export class MathEngine {
 
             if (
                 child &&
-                child.type ===
-                NodeTypes.NUMBER &&
+                child.type === NodeTypes.NUMBER &&
 
                 !(
                     parent &&
@@ -414,6 +419,39 @@ export class MathEngine {
                     childIndex === 0
                 )
             ) {
+
+                return {
+                    node,
+                    parent,
+                    childIndex,
+                    description: `Removemos os parênteses: ${this.nodeToText(node)}`
+                };
+            }
+
+            return null;
+        }
+
+        // -----------------------------------------------------
+        // Negação
+        // -----------------------------------------------------
+
+        if (node.type === NodeTypes.NEGATE) {
+
+            const child = node.getChild(0);
+
+            const inner = this.findNextOperation(
+                child,
+                node,
+                0
+            );
+
+            if (inner) {
+                return inner;
+            }
+
+            if (this.canEvaluate(child)) {
+
+                const result = this.evaluate(node);
 
                 return {
 
@@ -424,15 +462,12 @@ export class MathEngine {
                     childIndex,
 
                     description:
-                        `Removemos os parênteses: ${this.nodeToText(node)}`
+                        `Aplicamos a negação: -(${this.nodeToText(child)}) = ${this.formatNumber(result)}`
                 };
             }
 
-
-
             return null;
         }
-
 
         // -----------------------------------------------------
         // Operações binárias
@@ -546,12 +581,42 @@ export class MathEngine {
     // Executa uma operação
     // =========================================================
 
-    reduceNode(node) {
+    reduceNode(node, parent = null, childIndex = -1) {
 
         if (!node) {
             return null;
         }
 
+        // -----------------------------------------------------
+        // Negação
+        // -----------------------------------------------------
+
+        if (node.type === NodeTypes.NEGATE) {
+
+            const negativeNumber = new MathNode(
+                NodeTypes.NUMBER,
+                {
+                    value: this.formatNumber(
+                        this.evaluate(node)
+                    )
+                }
+            );
+
+            // Preserva o agrupamento quando a base da potência é negativa.
+            if (
+                parent?.type === NodeTypes.POWER &&
+                childIndex === 0
+            ) {
+                return new MathNode(
+                    NodeTypes.PARENTHESIS,
+                    {
+                        children: [negativeNumber]
+                    }
+                );
+            }
+
+            return negativeNumber;
+        }
 
         // -----------------------------------------------------
         // Parênteses
@@ -581,7 +646,6 @@ export class MathEngine {
             return null;
         }
 
-
         // -----------------------------------------------------
         // Operações
         // -----------------------------------------------------
@@ -593,18 +657,32 @@ export class MathEngine {
             const value =
                 this.evaluate(node);
 
+            const result =
+                new MathNode(
+                    NodeTypes.NUMBER,
+                    {
+                        value:
+                            this.formatNumber(value)
+                    }
+                );
 
-            return new MathNode(
-                NodeTypes.NUMBER,
-                {
-                    value:
-                        this.formatNumber(
-                            value
-                        )
-                }
-            );
+            // Preserva o agrupamento quando uma operação resulta em número negativo na base de uma potência.
+            if (
+                parent?.type === NodeTypes.POWER &&
+                childIndex === 0 &&
+                value < 0
+            ) {
+
+                return new MathNode(
+                    NodeTypes.PARENTHESIS,
+                    {
+                        children: [result]
+                    }
+                );
+            }
+
+            return result;
         }
-
 
         return null;
     }
@@ -629,6 +707,12 @@ export class MathEngine {
 
 
             case NodeTypes.PARENTHESIS:
+
+                return this.canEvaluate(
+                    node.getChild(0)
+                );
+
+            case NodeTypes.NEGATE:
 
                 return this.canEvaluate(
                     node.getChild(0)
@@ -759,6 +843,11 @@ export class MathEngine {
                     node.value
                 );
 
+            case NodeTypes.NEGATE:
+
+                return `-${this.nodeToText(
+                    node.getChild(0)
+                )}`;
 
             case NodeTypes.PARENTHESIS:
 

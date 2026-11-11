@@ -75,6 +75,11 @@ export class ExpressionValidator {
                     node,
                     allowSlots
                 );
+            case NodeTypes.NEGATE:
+                return this.validateUnaryOperation(
+                    node,
+                    allowSlots
+                );
 
             case NodeTypes.FRACTION:
                 return this.validateFraction(node, allowSlots);
@@ -215,6 +220,25 @@ export class ExpressionValidator {
             valid: true,
             error: null
         };
+    }
+
+    static validateUnaryOperation(
+        node,
+        allowSlots
+    ) {
+
+        if (node.children.length !== 1) {
+            return {
+                valid: false,
+                error:
+                    `A operação "${node.type}" precisa possuir exatamente um operando.`
+            };
+        }
+
+        return this.validateNode(
+            node.getChild(0),
+            allowSlots
+        );
     }
 
     static validateFraction(node, allowSlots) {

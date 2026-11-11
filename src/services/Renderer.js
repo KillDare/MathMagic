@@ -109,6 +109,8 @@ export class Renderer {
             case NodeTypes.FRACTION:
                 return this.renderFraction(node);
 
+            case NodeTypes.NEGATE:
+                return this.renderNegate(node);
 
             case NodeTypes.PARENTHESIS:
                 return this.renderParenthesis(node);
@@ -232,13 +234,16 @@ export class Renderer {
 
 
         const base = this.renderNode(
-            node.getChild(0)
+            node.getChild(0),
+            node,
+            0
         );
 
         const exponent = this.renderNode(
-            node.getChild(1)
+            node.getChild(1),
+            node,
+            1
         );
-
 
         const baseContainer = this.createElement(
             "div",
@@ -264,6 +269,37 @@ export class Renderer {
         return element;
     }
 
+    // =========================================================
+    // Negação
+    // =========================================================
+
+    renderNegate(node) {
+
+        const element = this.createElement(
+            "div",
+            "math-node math-negate"
+        );
+
+        this.setNodeData(element, node);
+
+        const operator = this.createElement(
+            "span",
+            "math-operator"
+        );
+
+        operator.textContent = "−";
+
+        const child = this.renderNode(
+            node.getChild(0),
+            node,
+            0
+        );
+
+        element.appendChild(operator);
+        element.appendChild(child);
+
+        return element;
+    }
 
     // =========================================================
     // Fração
@@ -316,9 +352,10 @@ export class Renderer {
 
 
         const child = this.renderNode(
-            node.getChild(0)
+            node.getChild(0),
+            node,
+            0
         );
-
 
         const right = document.createElement("span");
 

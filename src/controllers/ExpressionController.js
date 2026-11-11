@@ -90,9 +90,32 @@ export class ExpressionController {
             return;
         }
 
+        if (key === "-") {
+
+            event.preventDefault();
+
+            const selected =
+                this.expression.getSelectedNode();
+
+            if (
+                !this.expression.getRoot() ||
+                selected?.type === NodeTypes.SLOT
+            ) {
+
+                this.inputNegate();
+
+            } else {
+
+                this.inputOperator(
+                    NodeTypes.SUBTRACT
+                );
+            }
+
+            return;
+        }
+
         const operators = {
             "+": NodeTypes.ADD,
-            "-": NodeTypes.SUBTRACT,
             "*": NodeTypes.MULTIPLY,
             "x": NodeTypes.MULTIPLY,
             "X": NodeTypes.MULTIPLY,
@@ -240,6 +263,74 @@ export class ExpressionController {
             );
 
             this.update();
+        }
+    }
+
+    inputNegate() {
+
+        const root =
+            this.expression.getRoot();
+
+        const selected =
+            this.expression.getSelectedNode();
+
+        // -----------------------------------------------------
+        // Expressão vazia
+        // -----------------------------------------------------
+
+        if (!root) {
+
+            const slot = new MathNode(
+                NodeTypes.SLOT
+            );
+
+            const negate = new MathNode(
+                NodeTypes.NEGATE,
+                {
+                    children: [slot]
+                }
+            );
+
+            this.expression.setRoot(negate);
+
+            this.cursorNodeId = slot.id;
+
+            this.expression.selectNode(slot.id);
+
+            this.update();
+
+            return;
+        }
+
+        // -----------------------------------------------------
+        // SLOT selecionado
+        // -----------------------------------------------------
+
+        if (selected?.type === NodeTypes.SLOT) {
+
+            const slot = new MathNode(
+                NodeTypes.SLOT
+            );
+
+            const negate = new MathNode(
+                NodeTypes.NEGATE,
+                {
+                    children: [slot]
+                }
+            );
+
+            this.expression.replaceNode(
+                selected.id,
+                negate
+            );
+
+            this.cursorNodeId = slot.id;
+
+            this.expression.selectNode(slot.id);
+
+            this.update();
+
+            return;
         }
     }
 
@@ -870,6 +961,8 @@ export class ExpressionController {
                 NodeTypes.DIVIDE ||
                 current.type ===
                 NodeTypes.POWER ||
+                current.type === 
+                NodeTypes.NEGATE ||
                 current.type ===
                 NodeTypes.FRACTION ||
                 current.type ===

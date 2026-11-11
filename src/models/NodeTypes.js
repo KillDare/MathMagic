@@ -15,10 +15,11 @@ export const NodeTypes = {
     SUBTRACT: "subtract",
     MULTIPLY: "multiply",
     DIVIDE: "divide",
+    FRACTION: "fraction",
 
     POWER: "power",
-
-    FRACTION: "fraction",
+    
+    NEGATE: "negate",
 
     PARENTHESIS: "parenthesis",
 
@@ -37,6 +38,7 @@ export function getPrecedence(type) {
 
         case NodeTypes.MULTIPLY:
         case NodeTypes.DIVIDE:
+        case NodeTypes.NEGATE:
             return 2;
 
 
