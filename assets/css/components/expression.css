@@ -312,9 +312,9 @@
 
     min-width: 38px;
 
-    padding: 5px 8px 2px;
+    padding: 8px 8px 2px;
 
-    border-top: 2px solid var(--color-primary);
+    border-top: 3px solid var(--color-primary);
 }
 
 
